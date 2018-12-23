@@ -18,8 +18,9 @@ WebIM.config = {
     /*
      * Application AppKey
      */
+    // appkey: 'easemob-demo#chatdemoui',
     appkey: '1191170116178937#cheguanbao',
-	//appkey: 'easemob-demo#chatdemoui',
+
     /*
      * Whether to use wss
      * @parameter {Boolean} true or false
@@ -30,18 +31,18 @@ WebIM.config = {
      * true: A visitor can sign in to multiple webpages and receive messages at all the webpages.
      * false: A visitor can sign in to only one webpage and receive messages at the webpage.
      */
-    isMultiLoginSessions: false,
+    isMultiLoginSessions: true,
     /*
-     * Set to auto sign-in
+     * set presence after login
      */
-    isAutoLogin: false,
+    isAutoLogin: true,
     /**
      * Whether to use window.doQuery()
      * @parameter {Boolean} true or false
      */
     isWindowSDK: false,
     /**
-     * isSandBox=true:  xmppURL: 'im-api.sandbox.easemob.com',  apiURL: '//a1.sdb.easemob.com',
+     * isSandBox=true:  xmppURL: 'im-api-sandbox.easemob.com',  apiURL: '//a1-sdb.easemob.com',
      * isSandBox=false: xmppURL: 'im-api.easemob.com',          apiURL: '//a1.easemob.com',
      * @parameter {Boolean} true or false
      */
@@ -57,20 +58,59 @@ WebIM.config = {
      */
     autoReconnectNumMax: 2,
     /**
-     * the interval secons between each atuo reconnectting.
+     * the interval seconds between each auto reconnectting.
      * works only if autoReconnectMaxNum >= 2.
      */
     autoReconnectInterval: 2,
     /**
      * webrtc supports WebKit and https only
      */
-    isWebRTC: /WebKit/.test(navigator.userAgent) && /^https\:$/.test(window.location.protocol),
+    isWebRTC: (/Firefox/.test(navigator.userAgent) || /WebKit/.test(navigator.userAgent)) && /^https\:$/.test(window.location.protocol),
     /**
      * after login, send empty message to xmpp server like heartBeat every 45s, to keep the ws connection alive.
      */
-    heartBeatWait:4500,
+    heartBeatWait: 4500,
     /**
      * while http access,use ip directly,instead of ServerName,avoiding DNS problem.
      */
-    isHttpDNS: false
+    isHttpDNS: false,
+
+    /**
+     * Will show the status of messages in single chat
+     * msgStatus: true  show
+     * msgStatus: true  hide
+     */
+    msgStatus: true,
+
+    /**
+     * When a message arrived, the receiver send an ack message to the
+     * sender, in order to tell the sender the message has delivered.
+     * See call back function onReceivedMessage
+     */
+    delivery: true,
+
+    /**
+     * When a message read, the receiver send an ack message to the
+     * sender, in order to tell the sender the message has been read.
+     * See call back function onReadMessage
+     */
+    read: true,
+
+    /**
+     * When a message sent or arrived, will save it into the localStorage,
+     * true: Store the chat record
+     * false: Don't store the chat record 
+     */
+    saveLocal: true,
+
+    /**
+     * Will encrypt text message and emoji message
+     * {type:'none'}   no encrypt
+     * {type:'base64'} encrypt with base64
+     * {type:'aes',mode: 'ebc',key: '123456789easemob',iv: '0000000000000000'} encrypt with aes(ebc)
+     * {type:'aes',mode: 'cbc',key: '123456789easemob',iv: '0000000000000000'} encrypt with aes(cbc)
+     */
+    encrypt: {
+        type: 'none'
+    }
 };

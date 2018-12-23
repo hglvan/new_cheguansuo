@@ -18,24 +18,34 @@ var ConfirmGroupInfo = React.createClass({
         }
     },
 
-    onCancel: function (e) {
-        // throw request
-        // Demo.conn.rejectInviteFromGroup();
-
-        // Demo.conn.rejectInviteFromGroup({
-        //     reason: 'reject invite',
-        //     roomId: this.props.groupName,
-        //     list: [this.props.from]
-        // });
-        // this.close();
+    onRefuse: function (e) {
+        this.verify(false);
     },
 
-    onSubmit: function () {
-        Demo.conn.acceptInviteFromGroup({
-            roomId: this.props.groupName,
-            list: [this.props.from]
-        });
-        this.close();
+    onAgree: function () {
+        this.verify(true);
+    },
+
+    verify: function(result){
+        var applicant = this.props.from,
+            groupId = this.props.gid;
+        if(WebIM.config.isWindowSDK){
+            //TODO:isWindowSDK
+        }else{
+            var options = {
+                applicant: applicant,
+                groupId: groupId,
+                success: function(resp){
+                    console.log(resp);
+                }.bind(this),
+                error: function(e){}
+            };
+            if(result)
+                Demo.conn.agreeJoinGroup(options);
+            else
+                Demo.conn.rejectJoinGroup(options);
+            this.close();
+        }
     },
 
     close: function () {
@@ -43,7 +53,6 @@ var ConfirmGroupInfo = React.createClass({
     },
 
     render: function () {
-
         return (
             <div className='webim-friend-options'>
                 <div ref='layer' className='webim-layer'></div>
@@ -54,8 +63,8 @@ var ConfirmGroupInfo = React.createClass({
                         <p>{this.props.reason}</p>
                     </div>
                     <div className="webim-dialog-footer">
-                        <Button text={Demo.lan.reject} onClick={this.onCancel} className='webim-dialog-button'/>
-                        <Button text={Demo.lan.agree} onClick={this.onSubmit} className='webim-dialog-button'/>
+                        <Button text={Demo.lan.reject} onClick={this.onRefuse} className='webim-dialog-button'/>
+                        <Button text={Demo.lan.agree} onClick={this.onAgree} className='webim-dialog-button'/>
                     </div>
                     <span className='font' onClick={this.close}>A</span>
                 </div>

@@ -5,16 +5,77 @@ var _msg = require('./message');
 var _message = _msg._msg;
 var _msgHash = {};
 var Queue = require('./queue').Queue;
+var CryptoJS = require('crypto-js');
+var _ = require('underscore');
+var stropheConn = null;
 
 window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
 
 if (window.XDomainRequest) {
-    XDomainRequest.prototype.oldsend = XDomainRequest.prototype.send;
-    XDomainRequest.prototype.send = function () {
-        XDomainRequest.prototype.oldsend.apply(this, arguments);
-        this.readyState = 2;
-    };
+    // not support ie8 send is not a function , canot 
+    // case send is object, doesn't has a attr of call
+    // XDomainRequest.prototype.oldsend = XDomainRequest.prototype.send;
+    // XDomainRequest.prototype.send = function () {
+    //     XDomainRequest.prototype.oldsend.call(this, arguments);
+    //     this.readyState = 2;
+    // };
 }
+
+Strophe.Connection.prototype._sasl_auth1_cb = function (elem) {
+    // save stream:features for future usage
+    this.features = elem;
+    var i, child;
+    for (i = 0; i < elem.childNodes.length; i++) {
+        child = elem.childNodes[i];
+        if (child.nodeName == 'bind') {
+            this.do_bind = true;
+        }
+
+        if (child.nodeName == 'session') {
+            this.do_session = true;
+        }
+    }
+
+    if (!this.do_bind) {
+        this._changeConnectStatus(Strophe.Status.AUTHFAIL, null);
+        return false;
+    } else {
+        this._addSysHandler(this._sasl_bind_cb.bind(this), null, null,
+            null, "_bind_auth_2");
+
+        var resource = Strophe.getResourceFromJid(this.jid);
+        if (resource) {
+            // this.send($iq({type: "set", id: "_bind_auth_2"})
+            //     .c('bind', {xmlns: Strophe.NS.BIND})
+            //     .c('resource', {}).t(resource).tree());
+            var device_uuid = "device_uuid";
+            if (this.options.isMultiLoginSessions) {
+                device_uuid = new Date().getTime() + Math.floor(Math.random().toFixed(6) * 1000000)
+            }
+            try {
+                this.send(
+                    $iq({type: "set", id: "_bind_auth_2"})
+                        .c('bind', {xmlns: Strophe.NS.BIND})
+                        .c('resource', {}).t(resource)
+                        .up()
+                        .c('os').t('webim')
+                        .up()
+                        .c('device_uuid').t(device_uuid)
+                        .up()
+                        .c('is_manual_login').t('true')
+                        .tree()
+                );
+            } catch (e) {
+                console.log("Bind Error: ", e.message);
+            }
+        } else {
+            this.send($iq({type: "set", id: "_bind_auth_2"})
+                .c('bind', {xmlns: Strophe.NS.BIND})
+                .tree());
+        }
+    }
+    return false;
+};
 
 Strophe.Request.prototype._newXHR = function () {
     var xhr = _utils.xmlrequest(true);
@@ -40,6 +101,7 @@ Strophe.Websocket.prototype._closeSocket = function () {
     }
 };
 
+
 /**
  *
  * Strophe.Websocket has a bug while logout:
@@ -54,7 +116,16 @@ Strophe.Websocket.prototype._closeSocket = function () {
  * Fix it by overide  _onMessage
  */
 Strophe.Websocket.prototype._onMessage = function (message) {
-    WebIM && WebIM.config.isDebug && console.log(WebIM.utils.ts() + 'recv:', message.data);
+    logMessage(message)
+    // 获取Resource
+    var data = message.data;
+    if (data.indexOf('<jid>') > 0) {
+        var start = data.indexOf('<jid>'),
+            end = data.indexOf('</jid>'),
+            data = data.substring(start + 5, end);
+        stropheConn.setJid(data);
+    }
+
     var elem, data;
     // check for closing stream
     // var close = '<close xmlns="urn:ietf:params:xml:ns:xmpp-framing" />';
@@ -277,9 +348,11 @@ var _parseFriend = function (queryTag, conn, from) {
             friend.groups = groups;
             rouster.push(friend);
             // B同意之后 -> B订阅A
-            if (conn && (subscription == 'from')) {
+            // fix: 含有ask标示的好友代表已经发送过反向订阅消息，不需要再次发送。
+            if (conn && (subscription == 'from') && !ask) {
                 conn.subscribe({
-                    toJid: jid
+                    toJid: jid,
+                    message: "[resp:true]"
                 });
             }
 
@@ -305,9 +378,8 @@ var _login = function (options, conn) {
     }
     conn.context.accessToken = options.access_token;
     conn.context.accessTokenExpires = options.expires_in;
-    var stropheConn = null;
     if (conn.isOpening() && conn.context.stropheConn) {
-        stropheConn = conn.context.stropheConn;
+        stropheConn = conn.getStrophe();
     } else if (conn.isOpened() && conn.context.stropheConn) {
         // return;
         stropheConn = conn.getStrophe();
@@ -327,15 +399,41 @@ var _login = function (options, conn) {
 };
 
 var _parseMessageType = function (msginfo) {
-    var msgtype = 'normal';
-    var receiveinfo = msginfo.getElementsByTagName('received');
-    if (receiveinfo && receiveinfo.length > 0 && receiveinfo[0].namespaceURI === 'urn:xmpp:receipts') {
+    var receiveinfo = msginfo.getElementsByTagName('received'),
+        inviteinfo = msginfo.getElementsByTagName('invite'),
+        deliveryinfo = msginfo.getElementsByTagName('delivery'),
+        acked = msginfo.getElementsByTagName('acked'),
+        error = msginfo.getElementsByTagName('error'),
+        msgtype = 'normal';
+    if (receiveinfo && receiveinfo.length > 0
+        &&
+        receiveinfo[0].namespaceURI === 'urn:xmpp:receipts') {
+
         msgtype = 'received';
-    } else {
-        var inviteinfo = msginfo.getElementsByTagName('invite');
-        if (inviteinfo && inviteinfo.length > 0) {
-            msgtype = 'invite';
+
+    } else if (inviteinfo && inviteinfo.length > 0) {
+
+        msgtype = 'invite';
+
+    } else if (deliveryinfo && deliveryinfo.length > 0) {
+
+        msgtype = 'delivery';           // 消息送达
+
+    } else if (acked && acked.length) {
+
+        msgtype = 'acked';              // 消息已读
+
+    } else if (error && error.length) {
+
+        var errorItem = error[0],
+            userMuted = errorItem.getElementsByTagName('user-muted');
+
+        if (userMuted && userMuted.length) {
+
+            msgtype = 'userMuted';
+
         }
+
     }
     return msgtype;
 };
@@ -353,6 +451,7 @@ var _loginCallback = function (status, msg, conn) {
 
     if (msg === 'conflict') {
         conflict = true;
+        conn.close();
     }
 
     if (status == Strophe.Status.CONNFAIL) {
@@ -372,17 +471,36 @@ var _loginCallback = function (status, msg, conn) {
             conn.handelSendQueue();
         }, 200);
         var handleMessage = function (msginfo) {
+            var delivery = msginfo.getElementsByTagName('delivery');
+            var acked = msginfo.getElementsByTagName('acked');
+            if (delivery.length) {
+                conn.handleDeliveredMessage(msginfo);
+                return true;
+            }
+            if (acked.length) {
+                conn.handleAckedMessage(msginfo);
+                return true;
+            }
             var type = _parseMessageType(msginfo);
-
-            if ('received' === type) {
-                conn.handleReceivedMessage(msginfo);
-                return true;
-            } else if ('invite' === type) {
-                conn.handleInviteMessage(msginfo);
-                return true;
-            } else {
-                conn.handleMessage(msginfo);
-                return true;
+            switch (type) {
+                case "received":
+                    conn.handleReceivedMessage(msginfo);
+                    return true;
+                case "invite":
+                    conn.handleInviteMessage(msginfo);
+                    return true;
+                case "delivery":
+                    conn.handleDeliveredMessage(msginfo);
+                    return true;
+                case "acked":
+                    conn.handleAckedMessage(msginfo);
+                    return true;
+                case "userMuted":
+                    conn.handleMutedMessage(msginfo);
+                    return true;
+                default:
+                    conn.handleMessage(msginfo);
+                    return true;
             }
         };
         var handlePresence = function (msginfo) {
@@ -413,6 +531,8 @@ var _loginCallback = function (status, msg, conn) {
         conn.addHandler(handleIqPrivacy, 'jabber:iq:privacy', 'iq', 'set', null, null);
         conn.addHandler(handleIq, null, 'iq', null, null, null);
 
+        conn.registerConfrIQHandler && (conn.registerConfrIQHandler());
+
         conn.context.status = _code.STATUS_OPENED;
 
         var supportRecMessage = [
@@ -432,6 +552,21 @@ var _loginCallback = function (status, msg, conn) {
         conn.retry && _handleMessageQueue(conn);
         conn.heartBeat();
         conn.isAutoLogin && conn.setPresence();
+
+        try {
+            if (conn.unSendMsgArr.length > 0) {
+                for (var i in conn.unSendMsgArr) {
+                    var dom = conn.unSendMsgArr[i];
+                    conn.sendCommand(dom);
+                    delete conn.unSendMsgArr[i];
+                }
+            }
+        } catch (e) {
+            console.error(e.message);
+        }
+        conn.offLineSendConnecting = false;
+        conn.logOut = false;
+
         conn.onOpened({
             canReceive: supportRecMessage,
             canSend: supportSedMessage,
@@ -547,11 +682,8 @@ var _validCheck = function (options, conn) {
     var jid = appKey + '_' + user.toLowerCase() + '@' + conn.domain,
         resource = options.resource || 'webim';
 
-    if (conn.isMultiLoginSessions) {
-        resource += user + new Date().getTime() + Math.floor(Math.random().toFixed(6) * 1000000);
-    }
+
     conn.context.jid = jid + '/' + resource;
-    /*jid: {appkey}_{username}@domain/resource*/
     conn.context.userId = user;
     conn.context.appKey = appKey;
     conn.context.appName = appName;
@@ -586,8 +718,50 @@ var _getXmppUrl = function (baseUrl, https) {
     return url.prefix + url.base + url.suffix;
 };
 
+function _deepClone(data) {
+    var t = typeof data, o, i, ni;
 
-//class
+    if (t === 'array') {
+        o = [];
+    } else if (t === 'object') {
+        o = {};
+    } else {
+        return data;
+    }
+
+    if (t === 'array') {
+        for (i = 0, ni = data.length; i < ni; i++) {
+            o.push(_deepClone(data[i]));
+        }
+        return o;
+    } else if (t === 'object') {
+        for (i in data) {
+            o[i] = _deepClone(data[i]);
+        }
+        return o;
+    }
+}
+
+
+/**
+ * The connection class.
+ * @constructor
+ * @param {Object} options - 创建连接的初始化参数
+ * @param {String} options.url - xmpp服务器的URL
+ * @param {String} options.apiUrl - API服务器的URL
+ * @param {Boolean} options.isHttpDNS - 防止域名劫持
+ * @param {Boolean} options.isMultiLoginSessions - 为true时同一账户可以同时在多个Web页面登录（多标签登录，默认不开启，如有需要请联系商务），为false时同一账号只能在一个Web页面登录
+ * @param {Boolean} options.https - 是否启用wss.
+ * @param {Number} options.heartBeatWait - 发送心跳包的时间间隔（毫秒）
+ * @param {Boolean} options.isAutoLogin - 登录成功后是否自动出席
+ * @param {Number} options.autoReconnectNumMax - 掉线后重连的最大次数
+ * @param {Number} options.autoReconnectInterval -  掉线后重连的间隔时间（毫秒）
+ * @param {Boolean} options.isWindowSDK - 是否运行在WindowsSDK上
+ * @param {Boolean} options.encrypt - 是否加密文本消息
+ * @param {Boolean} options.delivery - 是否发送delivered ack
+ * @returns {Class}  连接实例
+ */
+
 var connection = function (options) {
     if (!this instanceof connection) {
         return new connection(options);
@@ -598,10 +772,10 @@ var connection = function (options) {
     this.isHttpDNS = options.isHttpDNS || false;
     this.isMultiLoginSessions = options.isMultiLoginSessions || false;
     this.wait = options.wait || 30;
+    this.hold = options.hold || 1;
     this.retry = options.retry || false;
     this.https = options.https || location.protocol === 'https:';
     this.url = _getXmppUrl(options.url, this.https);
-    this.hold = options.hold || 1;
     this.route = options.route || null;
     this.domain = options.domain || 'easemob.com';
     this.inactivity = options.inactivity || 30;
@@ -618,6 +792,16 @@ var connection = function (options) {
     this.intervalId = null;   //clearInterval return value
     this.apiUrl = options.apiUrl || '';
     this.isWindowSDK = options.isWindowSDK || false;
+    this.encrypt = options.encrypt || {encrypt: {type: 'none'}};
+    this.delivery = options.delivery || false;
+    this.saveLocal = options.saveLocal || false;
+    this.user = '';
+    this.orgName = '';
+    this.appName = '';
+    this.token = '';
+    this.unSendMsgArr = [];
+    this.offLineSendConnecting = false;
+    this.logOut = false;
 
     this.dnsArr = ['https://rs.easemob.com', 'https://rsbak.easemob.com', 'http://182.92.174.78', 'http://112.126.66.111']; //http dns server hosts
     this.dnsIndex = 0;   //the dns ip used in dnsArr currently
@@ -630,9 +814,42 @@ var connection = function (options) {
     this.xmppTotal = 0;    //max number of creating xmpp server connection(ws/bosh) retries
 
     this.groupOption = {};
+
+    /*
+     Demo.chatRecord = {
+     targetId: {
+     messages: [
+     {
+     msg: 'msg',
+     type: 'type'
+     },
+     {
+     msg: 'msg',
+     type: 'type'
+     }],
+     brief: 'brief'
+     }
+     }
+     */
 };
 
-connection.prototype.registerUser = function (options){
+connection.prototype.testInit = function (options) {
+    this.orgName = options.orgName;
+    this.appName = options.appName;
+    this.user = options.user;
+    this.token = options.token;
+};
+
+/**
+ * 注册新用户
+ * @param {Object} options - 用户信息
+ * @param {String} options.username - 用户名
+ * @param {String} options.password - 密码
+ * @param {String} options.nickname - 用户昵称
+ * @param {Function} options.success - 注册成功回调
+ * @param {Function} options.error - 注册失败
+ */
+connection.prototype.registerUser = function (options) {
     if (location.protocol != 'https:' && this.isHttpDNS) {
         this.dnsIndex = 0;
         this.getHttpDNS(options, 'signup');
@@ -641,13 +858,117 @@ connection.prototype.registerUser = function (options){
     }
 }
 
+/**
+ * 处理发送队列
+ * @private
+ */
 connection.prototype.handelSendQueue = function () {
     var options = this.sendQueue.pop();
     if (options !== null) {
         this.sendReceiptsMessage(options);
     }
 };
+
+/**
+ * 注册监听函数
+ * @param {Object} options - 回调函数集合
+ * @param {connection~onOpened} options.onOpened - 处理登录的回调
+ * @param {connection~onTextMessage} options.onTextMessage - 处理文本消息的回调
+ * @param {connection~onEmojiMessage} options.onEmojiMessage - 处理表情消息的回调
+ * @param {connection~onPictureMessage} options.onPictureMessage - 处理图片消息的回调
+ * @param {connection~onAudioMessage} options.onAudioMessage - 处理音频消息的回调
+ * @param {connection~onVideoMessage} options.onVideoMessage - 处理视频消息的回调
+ * @param {connection~onFileMessage} options.onFileMessage - 处理文件消息的回调
+ * @param {connection~onLocationMessage} options.onLocationMessage - 处理位置消息的回调
+ * @param {connection~onCmdMessage} options.onCmdMessage - 处理命令消息的回调
+ * @param {connection~onPresence} options.onPresence - 处理Presence消息的回调
+ * @param {connection~onError} options.onError - 处理错误消息的回调
+ * @param {connection~onReceivedMessage} options.onReceivedMessage - 处理Received消息的回调
+ * @param {connection~onInviteMessage} options.onInviteMessage - 处理邀请消息的回调
+ * @param {connection~onDeliverdMessage} options.onDeliverdMessage - 处理Delivered ACK消息的回调
+ * @param {connection~onReadMessage} options.onReadMessage - 处理Read ACK消息的回调
+ * @param {connection~onMutedMessage} options.onMutedMessage - 处理禁言消息的回调
+ * @param {connection~onOffline} options.onOffline - 处理断网的回调
+ * @param {connection~onOnline} options.onOnline - 处理联网的回调
+ * @param {connection~onCreateGroup} options.onCreateGroup - 处理创建群组的回调
+ */
 connection.prototype.listen = function (options) {
+    /**
+     * 登录成功后调用
+     * @callback connection~onOpened
+     */
+    /**
+     * 收到文本消息
+     * @callback connection~onTextMessage
+     */
+    /**
+     * 收到表情消息
+     * @callback connection~onEmojiMessage
+     */
+    /**
+     * 收到图片消息
+     * @callback connection~onPictureMessage
+     */
+    /**
+     * 收到音频消息
+     * @callback connection~onAudioMessage
+     */
+    /**
+     * 收到视频消息
+     * @callback connection~onVideoMessage
+     */
+    /**
+     * 收到文件消息
+     * @callback connection~onFileMessage
+     */
+    /**
+     * 收到位置消息
+     * @callback connection~onLocationMessage
+     */
+    /**
+     * 收到命令消息
+     * @callback connection~onCmdMessage
+     */
+    /**
+     * 收到错误消息
+     * @callback connection~onError
+     */
+    /**
+     * 收到Presence消息
+     * @callback connection~onPresence
+     */
+    /**
+     * 收到Received消息
+     * @callback connection~onReceivedMessage
+     */
+    /**
+     * 被邀请进群
+     * @callback connection~onInviteMessage
+     */
+    /**
+     * 收到已送达回执
+     * @callback connection~onDeliverdMessage
+     */
+    /**
+     * 收到已读回执
+     * @callback connection~onReadMessage
+     */
+    /**
+     * 被群管理员禁言
+     * @callback connection~onMutedMessage
+     */
+    /**
+     * 浏览器被断网时调用
+     * @callback connection~onOffline
+     */
+    /**
+     * 浏览器联网时调用
+     * @callback connection~onOnline
+     */
+    /**
+     * 建群成功后调用
+     * @callback connection~onCreateGroup
+     */
     this.onOpened = options.onOpened || _utils.emptyfn;
     this.onClosed = options.onClosed || _utils.emptyfn;
     this.onTextMessage = options.onTextMessage || _utils.emptyfn;
@@ -663,9 +984,13 @@ connection.prototype.listen = function (options) {
     this.onError = options.onError || _utils.emptyfn;
     this.onReceivedMessage = options.onReceivedMessage || _utils.emptyfn;
     this.onInviteMessage = options.onInviteMessage || _utils.emptyfn;
+    this.onDeliverdMessage = options.onDeliveredMessage || _utils.emptyfn;
+    this.onReadMessage = options.onReadMessage || _utils.emptyfn;
+    this.onMutedMessage = options.onMutedMessage || _utils.emptyfn;
     this.onOffline = options.onOffline || _utils.emptyfn;
     this.onOnline = options.onOnline || _utils.emptyfn;
     this.onConfirmPop = options.onConfirmPop || _utils.emptyfn;
+    this.onCreateGroup = options.onCreateGroup || _utils.emptyfn;
     //for WindowSDK start
     this.onUpdateMyGroupList = options.onUpdateMyGroupList || _utils.emptyfn;
     this.onUpdateMyRoster = options.onUpdateMyRoster || _utils.emptyfn;
@@ -675,12 +1000,21 @@ connection.prototype.listen = function (options) {
     _listenNetwork(this.onOnline, this.onOffline);
 };
 
-connection.prototype.heartBeat = function () {
+/**
+ * 发送心跳
+ * webrtc需要强制心跳，加个默认为false的参数 向下兼容
+ * @param {Boolean} forcing - 是否强制发送
+ * @private
+ */
+connection.prototype.heartBeat = function (forcing) {
+    if (forcing !== true) {
+        forcing = false;
+    }
     var me = this;
     //IE8: strophe auto switch from ws to BOSH, need heartbeat
     var isNeed = !/^ws|wss/.test(me.url) || /mobile/.test(navigator.userAgent);
 
-    if (this.heartBeatID || !isNeed) {
+    if (this.heartBeatID || (!forcing && !isNeed)) {
         return;
     }
 
@@ -689,16 +1023,25 @@ connection.prototype.heartBeat = function () {
         type: 'normal'
     };
     this.heartBeatID = setInterval(function () {
-        me.ping(options);
+        // fix: do heartbeat only when websocket 
+        _utils.isSupportWss && me.ping(options);
     }, this.heartBeatWait);
 };
 
+/**
+ * @private
+ */
 connection.prototype.stopHeartBeat = function () {
     if (typeof this.heartBeatID == "number") {
         this.heartBeatID = clearInterval(this.heartBeatID);
     }
 };
 
+/**
+ * 发送接收消息回执
+ * @param {Object} options -
+ * @private
+ */
 connection.prototype.sendReceiptsMessage = function (options) {
     var dom = $msg({
         from: this.context.jid || '',
@@ -711,10 +1054,16 @@ connection.prototype.sendReceiptsMessage = function (options) {
     this.sendCommand(dom.tree());
 };
 
+/**
+ * @private
+ */
 connection.prototype.cacheReceiptsMessage = function (options) {
     this.sendQueue.push(options);
 };
 
+/**
+ * @private
+ */
 connection.prototype.getStrophe = function () {
     if (location.protocol != 'https:' && this.isHttpDNS) {
         //TODO: try this.xmppTotal times on fail
@@ -739,12 +1088,20 @@ connection.prototype.getStrophe = function () {
     }
 
     var stropheConn = new Strophe.Connection(this.url, {
+        isMultiLoginSessions: this.isMultiLoginSessions,
         inactivity: this.inactivity,
         maxRetries: this.maxRetries,
         pollingTime: this.pollingTime
     });
     return stropheConn;
 };
+
+/**
+ *
+ * @param data
+ * @param tagName
+ * @private
+ */
 connection.prototype.getHostsByTag = function (data, tagName) {
     var tag = _utils.getXmlFirstChild(data, tagName);
     if (!tag) {
@@ -759,6 +1116,10 @@ connection.prototype.getHostsByTag = function (data, tagName) {
     return hosts[0].getElementsByTagName('host');
 
 };
+
+/**
+ * @private
+ */
 connection.prototype.getRestFromHttpDNS = function (options, type) {
     if (this.restIndex > this.restTotal) {
         console.log('rest hosts all tried,quit');
@@ -787,6 +1148,9 @@ connection.prototype.getRestFromHttpDNS = function (options, type) {
     }
 };
 
+/**
+ * @private
+ */
 connection.prototype.getHttpDNS = function (options, type) {
     if (this.restHosts) {
         this.getRestFromHttpDNS(options, type);
@@ -838,6 +1202,9 @@ connection.prototype.getHttpDNS = function (options, type) {
     _utils.ajax(options2);
 };
 
+/**
+ * @private
+ */
 connection.prototype.signup = function (options) {
     var self = this;
     var orgName = options.orgName || '';
@@ -892,8 +1259,26 @@ connection.prototype.signup = function (options) {
     _utils.ajax(options2);
 };
 
-
+/**
+ * 登录
+ * @param {Object} options - 用户信息
+ * @param {String} options.user - 用户名
+ * @param {String} options.pwd - 用户密码，跟token二选一
+ * @param {String} options.accessToken - token，跟密码二选一
+ * @param {String} options.appKey - Appkey
+ */
 connection.prototype.open = function (options) {
+    var appkey = options.appKey,
+        orgName = appkey.split('#')[0],
+        appName = appkey.split('#')[1];
+    this.orgName = orgName;
+    this.appName = appName;
+    if (options.accessToken) {
+        this.token = options.accessToken;
+    }
+    if (options.xmppURL) {
+        this.url = _getXmppUrl(options.xmppURL, this.https);
+    }
     if (location.protocol != 'https:' && this.isHttpDNS) {
         this.dnsIndex = 0;
         this.getHttpDNS(options, 'login');
@@ -902,7 +1287,13 @@ connection.prototype.open = function (options) {
     }
 };
 
+/**
+ *
+ * @param options
+ * @private
+ */
 connection.prototype.login = function (options) {
+    this.user = options.user;
     var pass = _validCheck(options, this);
 
     if (!pass) {
@@ -917,9 +1308,10 @@ connection.prototype.login = function (options) {
 
     if (options.accessToken) {
         options.access_token = options.accessToken;
+        conn.context.restTokenData = options;
         _login(options, conn);
     } else {
-        var apiUrl = options.apiUrl;
+        var apiUrl = this.apiUrl;
         var userId = this.context.userId;
         var pwd = options.pwd || '';
         var appName = this.context.appName;
@@ -928,11 +1320,14 @@ connection.prototype.login = function (options) {
         var suc = function (data, xhr) {
             conn.context.status = _code.STATUS_DOLOGIN_IM;
             conn.context.restTokenData = data;
-            options.success(data);
+            if (options.success)
+                options.success(data);
+            conn.token = data.access_token;
             _login(data, conn);
         };
         var error = function (res, xhr, msg) {
-            options.error();
+            if (options.error)
+                options.error();
             if (location.protocol != 'https:' && conn.isHttpDNS) {
                 if ((conn.restIndex + 1) < conn.restTotal) {
                     conn.restIndex++;
@@ -977,7 +1372,10 @@ connection.prototype.login = function (options) {
     }
 };
 
-// attach to xmpp server for BOSH
+/**
+ * attach to xmpp server for BOSH
+ * @private
+ */
 connection.prototype.attach = function (options) {
     var pass = _validCheck(options, this);
 
@@ -1011,7 +1409,7 @@ connection.prototype.attach = function (options) {
         return;
     }
 
-    var stropheConn = this.getStrophe();
+    stropheConn = this.getStrophe();
 
     this.context.accessToken = accessToken;
     this.context.stropheConn = stropheConn;
@@ -1029,7 +1427,12 @@ connection.prototype.attach = function (options) {
     stropheConn.attach(jid, sid, rid, callback, wait, hold, wind);
 };
 
+/**
+ * 关闭连接
+ * @param {String} reason
+ */
 connection.prototype.close = function (reason) {
+    this.logOut = true;
     this.stopHeartBeat();
 
     var status = this.context.status;
@@ -1045,14 +1448,21 @@ connection.prototype.close = function (reason) {
     this.context.stropheConn.disconnect(reason);
 };
 
+/**
+ * @private
+ */
 connection.prototype.addHandler = function (handler, ns, name, type, id, from, options) {
     this.context.stropheConn.addHandler(handler, ns, name, type, id, from, options);
 };
 
+/**
+ * @private
+ */
 connection.prototype.notifyVersion = function (suc, fail) {
-    var jid = _getJid({}, this);
+    var jid = stropheConn.getJid();
+    this.context.jid = jid;
     var dom = $iq({
-        from: this.context.jid || ''
+        from: jid || ''
         , to: this.domain
         , type: 'result'
     })
@@ -1078,7 +1488,10 @@ connection.prototype.notifyVersion = function (suc, fail) {
     return;
 };
 
-// handle all types of presence message
+/**
+ * handle all types of presence message
+ * @private
+ */
 connection.prototype.handlePresence = function (msginfo) {
     if (this.isClosed()) {
         return;
@@ -1090,6 +1503,9 @@ connection.prototype.handlePresence = function (msginfo) {
     var fromUser = _parseNameFromJidFn(from);
     var toUser = _parseNameFromJidFn(to);
     var isCreate = false;
+    var isMemberJoin = false;
+    var isDecline = false;
+    var isApply = false;
     var info = {
         from: fromUser,
         to: toUser,
@@ -1152,29 +1568,93 @@ connection.prototype.handlePresence = function (msginfo) {
         }
         // Service Acknowledges Room Creation `createGroupACK`
         if (role == 'moderator' && info.code == '201') {
-            if(affiliation === 'owner'){
+            if (affiliation === 'owner') {
                 info.type = 'createGroupACK';
                 isCreate = true;
             }
-            else
-                info.type = 'joinPublicGroupSuccess';
+            // else
+            //     info.type = 'joinPublicGroupSuccess';
         }
     }
 
-    var apply = msginfo.getElementsByTagName('apply');
-    if (apply && apply.length > 0) {
-        apply = apply[0];
-        var toNick = apply.getAttribute('toNick');
-        var groupJid = apply.getAttribute('to');
-        var userJid = apply.getAttribute('from');
-        var groupName = _parseNameFromJidFn(groupJid);
-        var userName = _parseNameFromJidFn(userJid);
-        info.toNick = toNick;
-        info.groupName = groupName;
-        info.type = 'joinGroupNotifications';
-        var reason = apply.getElementsByTagName('reason');
-        if (reason && reason.length > 0) {
-            info.reason = Strophe.getText(reason[0]);
+    var x = msginfo.getElementsByTagName('x');
+    if (x && x.length > 0) {
+        // 加群申请
+        var apply = x[0].getElementsByTagName('apply');
+        // 加群成功
+        var accept = x[0].getElementsByTagName('accept');
+        // 同意加群后用户进群通知
+        var item = x[0].getElementsByTagName('item');
+        // 加群被拒绝
+        var decline = x[0].getElementsByTagName('decline');
+        // 被设为管理员
+        var addAdmin = x[0].getElementsByTagName('add_admin');
+        // 被取消管理员
+        var removeAdmin = x[0].getElementsByTagName('remove_admin');
+        // 被禁言
+        var addMute = x[0].getElementsByTagName('add_mute');
+        // 取消禁言
+        var removeMute = x[0].getElementsByTagName('remove_mute');
+
+        if (apply && apply.length > 0) {
+            isApply = true;
+            info.toNick = apply[0].getAttribute('toNick');
+            info.type = 'joinGroupNotifications';
+            var groupJid = apply[0].getAttribute('to');
+            var gid = groupJid.split('@')[0].split('_');
+            gid = gid[gid.length - 1];
+            info.gid = gid;
+        } else if (accept && accept.length > 0) {
+            info.type = 'joinPublicGroupSuccess';
+        } else if (item && item.length > 0) {
+            var affiliation = item[0].getAttribute('affiliation'),
+                role = item[0].getAttribute('role');
+            if (affiliation == 'member'
+                ||
+                role == 'participant') {
+                isMemberJoin = true;
+                info.mid = info.fromJid.split('/');
+                info.mid = info.mid[info.mid.length - 1];
+                info.type = 'memberJoinPublicGroupSuccess';
+                var roomtype = msginfo.getElementsByTagName('roomtype');
+                if (roomtype && roomtype.length > 0) {
+                    var type = roomtype[0].getAttribute('type');
+                    if (type == 'chatroom') {
+                        info.type = 'memberJoinChatRoomSuccess';
+                    }
+                }
+            }
+        } else if (decline && decline.length) {
+            isDecline = true;
+            var gid = decline[0].getAttribute("fromNick");
+            var owner = _parseNameFromJidFn(decline[0].getAttribute("from"));
+            info.type = "joinPublicGroupDeclined";
+            info.owner = owner;
+            info.gid = gid;
+        } else if (addAdmin && addAdmin.length > 0) {
+            var gid = _parseNameFromJidFn(addAdmin[0].getAttribute('mucjid'));
+            var owner = _parseNameFromJidFn(addAdmin[0].getAttribute('from'));
+            info.owner = owner;
+            info.gid = gid;
+            info.type = "addAdmin";
+        } else if (removeAdmin && removeAdmin.length > 0) {
+            var gid = _parseNameFromJidFn(removeAdmin[0].getAttribute('mucjid'));
+            var owner = _parseNameFromJidFn(removeAdmin[0].getAttribute('from'));
+            info.owner = owner;
+            info.gid = gid;
+            info.type = "removeAdmin";
+        } else if (addMute && addMute.length > 0) {
+            var gid = _parseNameFromJidFn(addMute[0].getAttribute('mucjid'));
+            var owner = _parseNameFromJidFn(addMute[0].getAttribute('from'));
+            info.owner = owner;
+            info.gid = gid;
+            info.type = "addMute";
+        } else if (removeMute && removeMute.length > 0) {
+            var gid = _parseNameFromJidFn(removeMute[0].getAttribute('mucjid'));
+            var owner = _parseNameFromJidFn(removeMute[0].getAttribute('from'));
+            info.owner = owner;
+            info.gid = gid;
+            info.type = "removeMute";
         }
     }
 
@@ -1204,14 +1684,27 @@ connection.prototype.handlePresence = function (msginfo) {
 
         if (/subscribe/.test(info.type)) {
             //subscribe | subscribed | unsubscribe | unsubscribed
-        } else if (type == "" && !info.status && !info.error && !isCreate) {
-            info.type = 'joinPublicGroupSuccess';
+        } else if (type == ""
+            &&
+            !info.status
+            &&
+            !info.error
+            &&
+            !isCreate
+            &&
+            !isApply
+            &&
+            !isMemberJoin
+            &&
+            !isDecline
+        ) {
+            // info.type = 'joinPublicGroupSuccess';
         } else if (presence_type === 'unavailable' || type === 'unavailable') {// There is no roomtype when a chat room is deleted.
             if (info.destroy) {// Group or Chat room Deleted.
                 info.type = 'deleteGroupChat';
             } else if (info.code == 307 || info.code == 321) {// Dismissed by group.
                 var nick = msginfo.getAttribute('nick');
-                if(!nick)
+                if (!nick)
                     info.type = 'leaveGroup';
                 else
                     info.type = 'removedFromGroup';
@@ -1221,6 +1714,9 @@ connection.prototype.handlePresence = function (msginfo) {
     this.onPresence(info, msginfo);
 };
 
+/**
+ * @private
+ */
 connection.prototype.handlePing = function (e) {
     if (this.isClosed()) {
         return;
@@ -1237,10 +1733,16 @@ connection.prototype.handlePing = function (e) {
     this.sendCommand(dom.tree());
 };
 
+/**
+ * @private
+ */
 connection.prototype.handleIq = function (iq) {
     return true;
 };
 
+/**
+ * @private
+ */
 connection.prototype.handleIqPrivacy = function (msginfo) {
     var list = msginfo.getElementsByTagName('list');
     if (list.length == 0) {
@@ -1249,6 +1751,9 @@ connection.prototype.handleIqPrivacy = function (msginfo) {
     this.getBlacklist();
 };
 
+/**
+ * @private
+ */
 connection.prototype.handleIqRoster = function (e) {
     var id = e.getAttribute('id');
     var from = e.getAttribute('from') || '';
@@ -1268,6 +1773,9 @@ connection.prototype.handleIqRoster = function (e) {
     return true;
 };
 
+/**
+ * @private
+ */
 connection.prototype.handleMessage = function (msginfo) {
     var self = this;
     if (this.isClosed()) {
@@ -1275,6 +1783,7 @@ connection.prototype.handleMessage = function (msginfo) {
     }
 
     var id = msginfo.getAttribute('id') || '';
+
 
     // cache ack into sendQueue first , handelSendQueue will do the send thing with the speed of  5/s
     this.cacheReceiptsMessage({
@@ -1295,7 +1804,6 @@ connection.prototype.handleMessage = function (msginfo) {
         errorCode = error[0].getAttribute('code');
         var textDOM = error[0].getElementsByTagName('text');
         errorText = textDOM[0].textContent || textDOM[0].text;
-        log('handle error', errorCode, errorText);
     }
 
     var msgDatas = parseMsgData.data;
@@ -1330,6 +1838,34 @@ connection.prototype.handleMessage = function (msginfo) {
             switch (type) {
                 case 'txt':
                     var receiveMsg = msgBody.msg;
+                    var sourceMsg = _.clone(receiveMsg);
+                    /*
+                     if (self.encrypt.type === 'base64') {
+                     receiveMsg = atob(receiveMsg);
+                     } else if (self.encrypt.type === 'aes') {
+                     var key = CryptoJS.enc.Utf8.parse(self.encrypt.key);
+                     var iv = CryptoJS.enc.Utf8.parse(self.encrypt.iv);
+                     var mode = self.encrypt.mode.toLowerCase();
+                     var option = {};
+                     if (mode === 'cbc') {
+                     option = {
+                     iv: iv,
+                     mode: CryptoJS.mode.CBC,
+                     padding: CryptoJS.pad.Pkcs7
+                     };
+                     } else if (mode === 'ebc') {
+                     option = {
+                     mode: CryptoJS.mode.ECB,
+                     padding: CryptoJS.pad.Pkcs7
+                     }
+                     }
+                     var encryptedBase64Str = receiveMsg;
+                     var decryptedData = CryptoJS.AES.decrypt(encryptedBase64Str, key, option);
+                     var decryptedStr = decryptedData.toString(CryptoJS.enc.Utf8);
+                     receiveMsg = decryptedStr;
+                     }
+                     */
+                    receiveMsg = self.decrypt(receiveMsg);
                     var emojibody = _utils.parseTextMessage(receiveMsg, WebIM.Emoji);
                     if (emojibody.isemoji) {
                         var msg = {
@@ -1340,6 +1876,7 @@ connection.prototype.handleMessage = function (msginfo) {
                             , delay: parseMsgData.delayTimeStamp
                             , data: emojibody.body
                             , ext: extmsg
+                            , sourceMsg: sourceMsg
                         };
                         !msg.delay && delete msg.delay;
                         msg.error = errorBool;
@@ -1355,6 +1892,7 @@ connection.prototype.handleMessage = function (msginfo) {
                             , delay: parseMsgData.delayTimeStamp
                             , data: receiveMsg
                             , ext: extmsg
+                            , sourceMsg: sourceMsg
                         };
                         !msg.delay && delete msg.delay;
                         msg.error = errorBool;
@@ -1495,6 +2033,16 @@ connection.prototype.handleMessage = function (msginfo) {
                     break;
             }
             ;
+            if (self.delivery) {
+                var msgId = self.getUniqueId();
+                var bodyId = msg.id;
+                var deliverMessage = new WebIM.message('delivery', msgId);
+                deliverMessage.set({
+                    id: bodyId
+                    , to: msg.from
+                });
+                self.send(deliverMessage.body);
+            }
         } catch (e) {
             this.onError({
                 type: _code.WEBIM_CONNCTION_CALLBACK_INNER_ERROR
@@ -1504,9 +2052,54 @@ connection.prototype.handleMessage = function (msginfo) {
     }
 };
 
+/**
+ * @private
+ */
+connection.prototype.handleDeliveredMessage = function (message) {
+    var id = message.id;
+    var body = message.getElementsByTagName('body');
+    var mid = 0;
+    mid = body[0].innerHTML;
+    var msg = {
+        mid: mid
+    };
+    this.onDeliverdMessage(msg);
+    this.sendReceiptsMessage({
+        id: id
+    });
+};
+
+/**
+ * @private
+ */
+connection.prototype.handleAckedMessage = function (message) {
+    var id = message.id;
+    var body = message.getElementsByTagName('body');
+    var mid = 0;
+    mid = body[0].innerHTML;
+    var msg = {
+        mid: mid
+    };
+    this.onReadMessage(msg);
+    this.sendReceiptsMessage({
+        id: id
+    });
+};
+
+/**
+ * @private
+ */
 connection.prototype.handleReceivedMessage = function (message) {
     try {
-        this.onReceivedMessage(message);
+        var received = message.getElementsByTagName("received");
+        var mid = received[0].getAttribute('mid');
+        var body = message.getElementsByTagName("body");
+        var id = body[0].innerHTML;
+        var msg = {
+            mid: mid,
+            id: id
+        };
+        this.onReceivedMessage(msg);
     } catch (e) {
         this.onError({
             type: _code.WEBIM_CONNCTION_CALLBACK_INNER_ERROR
@@ -1540,6 +2133,9 @@ connection.prototype.handleReceivedMessage = function (message) {
     }
 };
 
+/**
+ * @private
+ */
 connection.prototype.handleInviteMessage = function (message) {
     var form = null;
     var invitemsg = message.getElementsByTagName('invite');
@@ -1572,10 +2168,28 @@ connection.prototype.handleInviteMessage = function (message) {
     });
 };
 
+/**
+ * @private
+ */
+connection.prototype.handleMutedMessage = function (message) {
+    var id = message.id;
+    this.onMutedMessage({
+        mid: id
+    });
+};
+
+/**
+ * @private
+ */
 connection.prototype.sendCommand = function (dom, id) {
     if (this.isOpened()) {
         this.context.stropheConn.send(dom);
     } else {
+        this.unSendMsgArr.push(dom);
+        if (!this.offLineSendConnecting && !this.logOut) {
+            this.offLineSendConnecting = true;
+            this.reconnect();
+        }
         this.onError({
             type: _code.WEBIM_CONNCTION_DISCONNECTED,
             reconnect: true
@@ -1583,11 +2197,22 @@ connection.prototype.sendCommand = function (dom, id) {
     }
 };
 
+/**
+ * 随机生成一个id用于消息id
+ * @param {String} [prefix=WEBIM_] - 前缀
+ * @returns {String} 唯一的id
+ */
 connection.prototype.getUniqueId = function (prefix) {
+    // fix: too frequently msg sending will make same id
+    if (this.autoIncrement) {
+        this.autoIncrement++
+    } else {
+        this.autoIncrement = 1
+    }
     var cdate = new Date();
     var offdate = new Date(2010, 1, 1);
     var offset = cdate.getTime() - offdate.getTime();
-    var hexd = parseInt(offset).toString(16);
+    var hexd = parseFloat(offset).toString(16) + this.autoIncrement;
 
     if (typeof prefix === 'string' || typeof prefix === 'number') {
         return prefix + '_' + hexd;
@@ -1596,8 +2221,40 @@ connection.prototype.getUniqueId = function (prefix) {
     }
 };
 
-connection.prototype.send = function (message) {
+/**
+ * send message
+ * @param {Object} messageSource - 由 Class Message 生成
+ */
+connection.prototype.send = function (messageSource) {
     var self = this;
+    var message = messageSource;
+    if (message.type === 'txt') {
+        if (this.encrypt.type === 'base64') {
+            message = _.clone(messageSource);
+            message.msg = btoa(message.msg);
+        } else if (this.encrypt.type === 'aes') {
+            message = _.clone(messageSource);
+            var key = CryptoJS.enc.Utf8.parse(this.encrypt.key);
+            var iv = CryptoJS.enc.Utf8.parse(this.encrypt.iv);
+            var mode = this.encrypt.mode.toLowerCase();
+            var option = {};
+            if (mode === 'cbc') {
+                option = {
+                    iv: iv,
+                    mode: CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                };
+            } else if (mode === 'ebc') {
+                option = {
+                    mode: CryptoJS.mode.ECB,
+                    padding: CryptoJS.pad.Pkcs7
+                }
+            }
+            var encryptedData = CryptoJS.AES.encrypt(message.msg, key, option);
+
+            message.msg = encryptedData.toString();
+        }
+    }
     if (this.isWindowSDK) {
         WebIM.doQuery('{"type":"sendMessage","to":"' + message.to + '","message_type":"' + message.type + '","msg":"' + encodeURI(message.msg) + '","chatType":"' + message.chatType + '"}',
             function (response) {
@@ -1633,6 +2290,11 @@ connection.prototype.send = function (message) {
     }
 };
 
+/**
+ * 添加联系人，已废弃不用
+ * @param {Object} options
+ * @deprecated
+ */
 connection.prototype.addRoster = function (options) {
     var jid = _getJid(options, this);
     var name = options.name || '';
@@ -1652,6 +2314,14 @@ connection.prototype.addRoster = function (options) {
     this.context.stropheConn.sendIQ(iq.tree(), suc, error);
 };
 
+/**
+ * 删除联系人
+ *
+ * @param {Object} options
+ * @param {String} options.to - 想要删除的联系人ID
+ * @param {Function} options.success - 成功回调，在这里面调用connection.unsubscribed才能真正删除联系人
+ * @fires connection#unsubscribed
+ */
 connection.prototype.removeRoster = function (options) {
     var jid = _getJid(options, this);
     var iq = $iq({type: 'set'}).c('query', {xmlns: 'jabber:iq:roster'}).c('item', {
@@ -1664,8 +2334,12 @@ connection.prototype.removeRoster = function (options) {
     this.context.stropheConn.sendIQ(iq, suc, error);
 };
 
+/**
+ * 获取联系人
+ * @param {Object} options
+ * @param {Function} options.success - 获取好友列表成功
+ */
 connection.prototype.getRoster = function (options) {
-    var conn = this;
     var dom = $iq({
         type: 'get'
     }).c('query', {xmlns: 'jabber:iq:roster'});
@@ -1697,6 +2371,44 @@ connection.prototype.getRoster = function (options) {
     }
 };
 
+/**
+ * 订阅和反向订阅
+ * @example
+ *
+ * A订阅B（A添加B为好友）
+ * A执行：
+ *  conn.subscribe({
+                to: 'B',
+                message: 'Hello~'
+            });
+ B的监听函数onPresence参数message.type == subscribe监听到有人订阅他
+ B执行：
+ conn.subscribed({
+                to: 'A',
+                message: '[resp:true]'
+          });
+ 同意A的订阅请求
+ B继续执行：
+ conn.subscribe({
+                to: 'A',
+                message: '[resp:true]'
+            });
+ 反向订阅A，这样才算双方添加好友成功。
+ 若B拒绝A的订阅请求，只需执行：
+ conn.unsubscribed({
+                        to: 'A',
+                        message: 'I don't want to be subscribed'
+                    });
+ 另外，在监听函数onPresence参数message.type == "subscribe"这个case中，加一句
+ if (message && message.status === '[resp:true]') {
+            return;
+        }
+ 否则会进入死循环
+ *
+ * @param {Object} options - 想要订阅的联系人信息
+ * @param {String} options.to - 想要订阅的联系人ID
+ * @param {String} options.message - 发送给想要订阅的联系人的验证消息
+ */
 connection.prototype.subscribe = function (options) {
     var jid = _getJid(options, this);
     var pres = $pres({to: jid, type: 'subscribe'});
@@ -1709,7 +2421,14 @@ connection.prototype.subscribe = function (options) {
     this.sendCommand(pres.tree());
 };
 
+/**
+ * 被订阅后确认同意被订阅
+ * @param {Object} options - 订阅人的信息
+ * @param {String} options.to - 订阅人的ID
+ * @param {String} options.message=[resp:true] - 默认为[resp:true]，后续将去掉该参数
+ */
 connection.prototype.subscribed = function (options) {
+    var message = '[resp:true]';
     var jid = _getJid(options, this);
     var pres = $pres({to: jid, type: 'subscribed'});
 
@@ -1719,6 +2438,11 @@ connection.prototype.subscribed = function (options) {
     this.sendCommand(pres.tree());
 };
 
+/**
+ * 取消订阅成功，废弃不用
+ * @param {Object} options
+ * @deprecated
+ */
 connection.prototype.unsubscribe = function (options) {
     var jid = _getJid(options, this);
     var pres = $pres({to: jid, type: 'unsubscribe'});
@@ -1729,6 +2453,12 @@ connection.prototype.unsubscribe = function (options) {
     this.sendCommand(pres.tree());
 };
 
+/**
+ * 拒绝对方的订阅请求
+ * @function connection#event:unsubscribed
+ * @param {Object} options -
+ * @param {String} options.to - 订阅人的ID
+ */
 connection.prototype.unsubscribed = function (options) {
     var jid = _getJid(options, this);
     var pres = $pres({to: jid, type: 'unsubscribed'});
@@ -1739,7 +2469,11 @@ connection.prototype.unsubscribed = function (options) {
     this.sendCommand(pres.tree());
 };
 
-
+/**
+ * 加入公开群组
+ * @param {Object} options
+ * @deprecated
+ */
 connection.prototype.joinPublicGroup = function (options) {
     var roomJid = this.context.appKey + '_' + options.roomId + '@conference.' + this.domain;
     var room_nick = roomJid + '/' + this.context.userId;
@@ -1760,6 +2494,11 @@ connection.prototype.joinPublicGroup = function (options) {
     this.context.stropheConn.sendIQ(iq.tree(), suc, errorFn);
 };
 
+/**
+ * 获取聊天室列表
+ * @param {Object} options
+ * @deprecated
+ */
 connection.prototype.listRooms = function (options) {
     var iq = $iq({
         to: options.server || 'conference.' + this.domain,
@@ -1792,6 +2531,11 @@ connection.prototype.listRooms = function (options) {
     this.context.stropheConn.sendIQ(iq.tree(), completeFn, errorFn);
 };
 
+/**
+ * 获取群组成员列表
+ * @param {Object} options
+ * @deprecated
+ */
 connection.prototype.queryRoomMember = function (options) {
     var domain = this.domain;
     var members = [];
@@ -1828,7 +2572,13 @@ connection.prototype.queryRoomMember = function (options) {
     this.context.stropheConn.sendIQ(iq.tree(), completeFn, errorFn);
 };
 
+/**
+ * 获取群组信息
+ * @param {Object} options
+ * @deprecated
+ */
 connection.prototype.queryRoomInfo = function (options) {
+    console.log('QueryRoomInfo');
     var domain = this.domain;
     var iq = $iq({
         to: this.context.appKey + '_' + options.roomId + '@conference.' + domain,
@@ -1894,7 +2644,6 @@ connection.prototype.queryRoomInfo = function (options) {
             }
             fieldValues['name'] = (result.getElementsByTagName('identity')[0]).getAttribute('name');
         }
-        log(settings, members, fieldValues);
         suc(settings, members, fieldValues);
     };
     var err = options.error || _utils.emptyfn;
@@ -1907,6 +2656,11 @@ connection.prototype.queryRoomInfo = function (options) {
     this.context.stropheConn.sendIQ(iq.tree(), completeFn, errorFn);
 };
 
+/**
+ * 获取聊天室管理员
+ * @param {Object} options
+ * @deprecated
+ */
 connection.prototype.queryRoomOccupants = function (options) {
     var suc = options.success || _utils.emptyfn;
     var completeFn = function (result) {
@@ -1932,6 +2686,11 @@ connection.prototype.queryRoomOccupants = function (options) {
     this.context.stropheConn.sendIQ(info.tree(), completeFn, errorFn);
 };
 
+/**
+ *
+ * @deprecated
+ * @private
+ */
 connection.prototype.setUserSig = function (desc) {
     var dom = $pres({xmlns: 'jabber:client'});
     desc = desc || '';
@@ -1939,6 +2698,10 @@ connection.prototype.setUserSig = function (desc) {
     this.sendCommand(dom.tree());
 };
 
+/**
+ *
+ * @private
+ */
 connection.prototype.setPresence = function (type, status) {
     var dom = $pres({xmlns: 'jabber:client'});
     if (type) {
@@ -1952,12 +2715,20 @@ connection.prototype.setPresence = function (type, status) {
     this.sendCommand(dom.tree());
 };
 
+/**
+ * @private
+ *
+ */
 connection.prototype.getPresence = function () {
     var dom = $pres({xmlns: 'jabber:client'});
     var conn = this;
     this.sendCommand(dom.tree());
 };
 
+/**
+ * @private
+ *
+ */
 connection.prototype.ping = function (options) {
     var options = options || {};
     var jid = _getJid(options, this);
@@ -1986,30 +2757,54 @@ connection.prototype.ping = function (options) {
     return;
 };
 
+/**
+ * @private
+ *
+ */
 connection.prototype.isOpened = function () {
     return this.context.status == _code.STATUS_OPENED;
 };
 
+/**
+ * @private
+ *
+ */
 connection.prototype.isOpening = function () {
     var status = this.context.status;
     return status == _code.STATUS_DOLOGIN_USERGRID || status == _code.STATUS_DOLOGIN_IM;
 };
 
+/**
+ * @private
+ *
+ */
 connection.prototype.isClosing = function () {
     return this.context.status == _code.STATUS_CLOSING;
 };
 
+/**
+ * @private
+ *
+ */
 connection.prototype.isClosed = function () {
     return this.context.status == _code.STATUS_CLOSED;
 };
 
+/**
+ * @private
+ *
+ */
 connection.prototype.clear = function () {
     var key = this.context.appKey;
     if (this.errorType != _code.WEBIM_CONNCTION_DISCONNECTED) {
-        this.context = {
-            status: _code.STATUS_INIT,
-            appKey: key
-        };
+        if (this.logOut) {
+            this.unSendMsgArr = [];
+            this.offLineSendConnecting = false;
+            this.context = {
+                status: _code.STATUS_INIT,
+                appKey: key
+            };
+        }
     }
     if (this.intervalId) {
         clearInterval(this.intervalId);
@@ -2028,7 +2823,16 @@ connection.prototype.clear = function () {
     }
 };
 
+/**
+ * 获取聊天室列表
+ * @param {Object} options
+ * @param {String} options.pagenum
+ * @param {String} options.pagesize
+ */
 connection.prototype.getChatRooms = function (options) {
+
+    var conn = this,
+        token = options.accessToken || this.context.accessToken;
 
     if (!_utils.isCanSetRequestHeader) {
         conn.onError({
@@ -2037,11 +2841,8 @@ connection.prototype.getChatRooms = function (options) {
         return;
     }
 
-    var conn = this,
-        token = options.accessToken || this.context.accessToken;
-
     if (token) {
-        var apiUrl = options.apiUrl;
+        var apiUrl = this.apiUrl;
         var appName = this.context.appName;
         var orgName = this.context.orgName;
 
@@ -2090,6 +2891,11 @@ connection.prototype.getChatRooms = function (options) {
 
 };
 
+/**
+ * 加入聊天室
+ * @param {Object} options
+ * @param {String} options.roomId
+ */
 connection.prototype.joinChatRoom = function (options) {
     var roomJid = this.context.appKey + '_' + options.roomId + '@conference.' + this.domain;
     var room_nick = roomJid + '/' + this.context.userId;
@@ -2114,6 +2920,11 @@ connection.prototype.joinChatRoom = function (options) {
     this.context.stropheConn.sendIQ(iq.tree(), suc, errorFn);
 };
 
+/**
+ * 退出聊天室
+ * @param {Object} options
+ * @param {String} options.roomId
+ */
 connection.prototype.quitChatRoom = function (options) {
     var roomJid = this.context.appKey + '_' + options.roomId + '@conference.' + this.domain;
     var room_nick = roomJid + '/' + this.context.userId;
@@ -2138,6 +2949,11 @@ connection.prototype.quitChatRoom = function (options) {
     this.context.stropheConn.sendIQ(iq.tree(), suc, errorFn);
 };
 
+/**
+ * for windowSDK
+ * @private
+ *
+ */
 connection.prototype._onReceiveInviteFromGroup = function (info) {
     info = eval('(' + info + ')');
     var self = this;
@@ -2172,6 +2988,12 @@ connection.prototype._onReceiveInviteFromGroup = function (info) {
 
     this.onConfirmPop(options);
 };
+
+/**
+ * for windowSDK
+ * @private
+ *
+ */
 connection.prototype._onReceiveInviteAcceptionFromGroup = function (info) {
     info = eval('(' + info + ')');
     var options = {
@@ -2182,6 +3004,12 @@ connection.prototype._onReceiveInviteAcceptionFromGroup = function (info) {
     };
     this.onConfirmPop(options);
 };
+
+/**
+ * for windowSDK
+ * @private
+ *
+ */
 connection.prototype._onReceiveInviteDeclineFromGroup = function (info) {
     info = eval('(' + info + ')');
     var options = {
@@ -2192,6 +3020,12 @@ connection.prototype._onReceiveInviteDeclineFromGroup = function (info) {
     };
     this.onConfirmPop(options);
 };
+
+/**
+ * for windowSDK
+ * @private
+ *
+ */
 connection.prototype._onAutoAcceptInvitationFromGroup = function (info) {
     info = eval('(' + info + ')');
     var options = {
@@ -2202,6 +3036,12 @@ connection.prototype._onAutoAcceptInvitationFromGroup = function (info) {
     };
     this.onConfirmPop(options);
 };
+
+/**
+ * for windowSDK
+ * @private
+ *
+ */
 connection.prototype._onLeaveGroup = function (info) {
     info = eval('(' + info + ')');
     var options = {
@@ -2212,6 +3052,12 @@ connection.prototype._onLeaveGroup = function (info) {
     };
     this.onConfirmPop(options);
 };
+
+/**
+ * for windowSDK
+ * @private
+ *
+ */
 connection.prototype._onReceiveJoinGroupApplication = function (info) {
     info = eval('(' + info + ')');
     var self = this;
@@ -2245,6 +3091,12 @@ connection.prototype._onReceiveJoinGroupApplication = function (info) {
     };
     this.onConfirmPop(options);
 };
+
+/**
+ * for windowSDK
+ * @private
+ *
+ */
 connection.prototype._onReceiveAcceptionFromGroup = function (info) {
     info = eval('(' + info + ')');
     var options = {
@@ -2255,6 +3107,12 @@ connection.prototype._onReceiveAcceptionFromGroup = function (info) {
     };
     this.onConfirmPop(options);
 };
+
+/**
+ * for windowSDK
+ * @private
+ *
+ */
 connection.prototype._onReceiveRejectionFromGroup = function () {
     info = eval('(' + info + ')');
     var options = {
@@ -2265,12 +3123,29 @@ connection.prototype._onReceiveRejectionFromGroup = function () {
     };
     this.onConfirmPop(options);
 };
+
+/**
+ * for windowSDK
+ * @private
+ *
+ */
 connection.prototype._onUpdateMyGroupList = function (options) {
     this.onUpdateMyGroupList(options);
 };
+
+/**
+ * for windowSDK
+ * @private
+ *
+ */
 connection.prototype._onUpdateMyRoster = function (options) {
     this.onUpdateMyRoster(options);
 };
+
+/**
+ * @private
+ *
+ */
 connection.prototype.reconnect = function () {
     var that = this;
     setTimeout(function () {
@@ -2279,6 +3154,11 @@ connection.prototype.reconnect = function () {
     this.autoReconnectNumTotal++;
 };
 
+/**
+ *
+ * @private
+ * @deprecated
+ */
 connection.prototype.closed = function () {
     var message = {
         data: {
@@ -2289,7 +3169,148 @@ connection.prototype.closed = function () {
     this.onError(message);
 };
 
-// used for blacklist
+/**
+ * 将消息序列化后存入localStorage
+ * @param message {Object} 消息实体
+ * @param type {String} 消息类型
+ * @param status {String} 消息状态
+ */
+connection.prototype.addToLocal = function (message, type, status) {
+    if(!this.saveLocal){
+        return;
+    }
+    var sendByMe = (typeof message.msg == 'string');
+    if (!window.localStorage)
+        return;
+    try {
+        var msg = _deepClone(message);
+    } catch (e) {
+        console.log(e.message);
+    }
+    msg.data = msg.sourceMsg;
+    if (type == 'txt') {
+        if (!message.data && !message.msg) {
+            return;
+        }
+        if (sendByMe) {
+            msg.data = this.enc(msg.msg);
+            delete msg.msg;
+        } else {
+            msg.data = msg.sourceMsg;
+        }
+    }
+    msg.msgType = type;
+    msg.msgStatus = status;
+    var oldRecord = window.localStorage.getItem(this.user);
+    var serializedChatRecord = JSON.stringify(msg);
+    if (oldRecord && (oldRecord.indexOf(message.id) >= 0
+        || oldRecord.indexOf(serializedChatRecord) >= 0)) {
+        return;
+    }
+    var record = "";
+    if (!oldRecord || oldRecord == "") {
+        record = serializedChatRecord;
+    } else {
+        record = oldRecord + '\n' + serializedChatRecord;
+    }
+    window.localStorage.setItem(this.user, record);
+};
+
+/**
+ * 将文本消息加密
+ * @param messageSource {Object} 消息实体
+ */
+
+connection.prototype.enc = function (messageSource) {
+    var message = _.clone(messageSource);
+    if (this.encrypt.type === 'base64') {
+        message = btoa(messageSource);
+    } else if (this.encrypt.type === 'aes') {
+        var key = CryptoJS.enc.Utf8.parse(this.encrypt.key);
+        var iv = CryptoJS.enc.Utf8.parse(this.encrypt.iv);
+        var mode = this.encrypt.mode.toLowerCase();
+        var option = {};
+        if (mode === 'cbc') {
+            option = {
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            };
+        } else if (mode === 'ebc') {
+            option = {
+                mode: CryptoJS.mode.ECB,
+                padding: CryptoJS.pad.Pkcs7
+            }
+        }
+        var encryptedData = CryptoJS.AES.encrypt(message, key, option);
+
+        message = encryptedData.toString();
+    }
+    return message;
+};
+
+/**
+ * 将文本消息解密
+ * @param source {Object} 消息实体
+ * @returns {Object} 解密后的消息
+ */
+connection.prototype.decrypt = function (source) {
+    var receiveMsg = source, self = this;
+    if (self.encrypt.type === 'base64') {
+        receiveMsg = atob(receiveMsg);
+    } else if (self.encrypt.type === 'aes') {
+        var key = CryptoJS.enc.Utf8.parse(self.encrypt.key);
+        var iv = CryptoJS.enc.Utf8.parse(self.encrypt.iv);
+        var mode = self.encrypt.mode.toLowerCase();
+        var option = {};
+        if (mode === 'cbc') {
+            option = {
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            };
+        } else if (mode === 'ebc') {
+            option = {
+                mode: CryptoJS.mode.ECB,
+                padding: CryptoJS.pad.Pkcs7
+            }
+        }
+        var encryptedBase64Str = receiveMsg;
+        var decryptedData = CryptoJS.AES.decrypt(encryptedBase64Str, key, option);
+        var decryptedStr = decryptedData.toString(CryptoJS.enc.Utf8);
+        receiveMsg = decryptedStr;
+    }
+    return receiveMsg;
+};
+
+/**
+ * 从localStorage获取消息并反序列化
+ * @returns {Array|*} 所有消息组成的数组
+ */
+connection.prototype.getLocal = function () {
+    if (!window.localStorage || !this.saveLocal)
+        return;
+    var user = this.user;
+    var record = window.localStorage.getItem(user);
+
+    if (!record || record == '')
+        return;
+
+    var recordArr = record.split('\n');
+    for (var i in recordArr) {
+        var recordItem = recordArr[i];
+        recordItem = JSON.parse(recordItem);
+        recordItem.data = this.decrypt(recordItem.data);
+        recordArr[i] = recordItem;
+    }
+    return recordArr;
+};
+
+/**
+ * used for blacklist
+ * @private
+ *
+ */
 function _parsePrivacy(iq) {
     var list = [];
     var items = iq.getElementsByTagName('item');
@@ -2315,7 +3336,11 @@ function _parsePrivacy(iq) {
     return list;
 };
 
-// used for blacklist
+/**
+ * 获取好友黑名单
+ *
+ * @returns {Object} 好友列表
+ */
 connection.prototype.getBlacklist = function (options) {
     options = (options || {});
     var iq = $iq({type: 'get'});
@@ -2335,11 +3360,18 @@ connection.prototype.getBlacklist = function (options) {
     });
 };
 
-// used for blacklist
+/**
+ * 将好友加入到黑名单
+ * @param {Object} options
+ * @param {Object[]} options.list - 调用这个函数后黑名单的所有名单列表，key值为好友的ID
+ * @param {Object} options.list[].type=jid - 要加到黑名单的好友对象的type，默认是jid
+ * @param {Number} options.list[].order - 要加到黑名单的好友对象的order，所有order不重复
+ * @param {string} options.list[].jid - 要加到黑名单的好友的jid
+ * @param {string} options.list[].name - 要加到黑名单的好友的ID
+ */
 connection.prototype.addToBlackList = function (options) {
     var iq = $iq({type: 'set'});
     var blacklist = options.list || {};
-    var type = options.type || 'jid';
     var sucFn = options.success || _utils.emptyfn;
     var errFn = options.error || _utils.emptyfn;
     var piece = iq.c('query', {xmlns: 'jabber:iq:privacy'})
@@ -2361,13 +3393,20 @@ connection.prototype.addToBlackList = function (options) {
         }
     }
 
-    // log('addToBlackList', blacklist, piece.tree());
     this.context.stropheConn.sendIQ(piece.tree(), sucFn, errFn);
 };
 
-// used for blacklist
+/**
+ * 将好友从黑名单移除
+ * @param {Object} options
+ * @param {Object[]} options.list - 调用这个函数后黑名单的所有名单列表，key值为好友的ID
+ * @param {Object} options.list[].type=jid - 要加到黑名单的好友对象的type，默认是jid
+ * @param {Number} options.list[].order - 要加到黑名单的好友对象的order，所有order不重复
+ * @param {string} options.list[].jid - 要加到黑名单的好友的jid
+ * @param {string} options.list[].name - 要加到黑名单的好友的ID
+ */
 connection.prototype.removeFromBlackList = function (options) {
-
+    console.log('removeFromBlackList: ', options);
     var iq = $iq({type: 'set'});
     var blacklist = options.list || {};
     var sucFn = options.success || _utils.emptyfn;
@@ -2391,16 +3430,23 @@ connection.prototype.removeFromBlackList = function (options) {
         }
     }
 
-    // log('removeFromBlackList', blacklist, piece.tree());
     this.context.stropheConn.sendIQ(piece.tree(), sucFn, errFn);
 };
 
+/**
+ *
+ * @private
+ */
 connection.prototype._getGroupJid = function (to) {
     var appKey = this.context.appKey || '';
     return appKey + '_' + to + '@conference.' + this.domain;
 };
 
-// used for blacklist
+/**
+ * 加入群组黑名单
+ * @param {Object} options
+ * @deprecated
+ */
 connection.prototype.addToGroupBlackList = function (options) {
     var sucFn = options.success || _utils.emptyfn;
     var errFn = options.error || _utils.emptyfn;
@@ -2418,6 +3464,10 @@ connection.prototype.addToGroupBlackList = function (options) {
     this.context.stropheConn.sendIQ(iq.tree(), sucFn, errFn);
 };
 
+/**
+ *
+ * @private
+ */
 function _parseGroupBlacklist(iq) {
     var list = {};
     var items = iq.getElementsByTagName('item');
@@ -2443,7 +3493,11 @@ function _parseGroupBlacklist(iq) {
     return list;
 }
 
-// used for blacklist
+/**
+ * 获取群组黑名单
+ * @param {Object} options
+ * @deprecated
+ */
 connection.prototype.getGroupBlacklist = function (options) {
     var sucFn = options.success || _utils.emptyfn;
     var errFn = options.error || _utils.emptyfn;
@@ -2459,14 +3513,17 @@ connection.prototype.getGroupBlacklist = function (options) {
         });
 
     this.context.stropheConn.sendIQ(iq.tree(), function (msginfo) {
-        log('getGroupBlackList');
         sucFn(_parseGroupBlacklist(msginfo));
     }, function () {
         errFn();
     });
 };
 
-// used for blacklist
+/**
+ * 从群组黑名单删除
+ * @param {Object} options
+ * @deprecated
+ */
 connection.prototype.removeGroupMemberFromBlacklist = function (options) {
     var sucFn = options.success || _utils.emptyfn;
     var errFn = options.error || _utils.emptyfn;
@@ -2490,18 +3547,10 @@ connection.prototype.removeGroupMemberFromBlacklist = function (options) {
 };
 
 /**
- * changeGroupSubject 修改群名称
- *
- * @param options
+ * 修改群名称
+ * @param {Object} options -
+ * @deprecated
  */
-// <iq to='easemob-demo#chatdemoui_roomid@conference.easemob.com' type='set' id='3940489311' xmlns='jabber:client'>
-//     <query xmlns='http://jabber.org/protocol/muc#owner'>
-//         <x type='submit' xmlns='jabber:x:data'>
-//             <field var='FORM_TYPE'><value>http://jabber.org/protocol/muc#roomconfig</value></field>
-//             <field var='muc#roomconfig_roomname'><value>Room Name</value></field>
-//         </x>
-//     </query>
-// </iq>
 connection.prototype.changeGroupSubject = function (options) {
     var sucFn = options.success || _utils.emptyfn;
     var errFn = options.error || _utils.emptyfn;
@@ -2534,17 +3583,19 @@ connection.prototype.changeGroupSubject = function (options) {
 };
 
 /**
- * destroyGroup 删除群组
+ * 删除群组
  *
- * @param options
+ * @param {Object} options -
+ * @example
+ <iq id="9BEF5D20-841A-4048-B33A-F3F871120E58" to="easemob-demo#chatdemoui_1477462231499@conference.easemob.com" type="set">
+ <query xmlns="http://jabber.org/protocol/muc#owner">
+ <destroy>
+ <reason>xxx destory group yyy</reason>
+ </destroy>
+ </query>
+ </iq>
+ * @deprecated
  */
-// <iq id="9BEF5D20-841A-4048-B33A-F3F871120E58" to="easemob-demo#chatdemoui_1477462231499@conference.easemob.com" type="set">
-//     <query xmlns="http://jabber.org/protocol/muc#owner">
-//         <destroy>
-//             <reason>xxx destory group yyy</reason>
-//         </destroy>
-//     </query>
-// </iq>
 connection.prototype.destroyGroup = function (options) {
     var sucFn = options.success || _utils.emptyfn;
     var errFn = options.error || _utils.emptyfn;
@@ -2566,17 +3617,18 @@ connection.prototype.destroyGroup = function (options) {
 };
 
 /**
- * leaveGroupBySelf 主动离开群组
+ * 主动离开群组
  *
- * @param options
+ * @param {Object} options -
+ * @example
+ <iq id="5CD33172-7B62-41B7-98BC-CE6EF840C4F6_easemob_occupants_change_affiliation" to="easemob-demo#chatdemoui_1477481609392@conference.easemob.com" type="set">
+ <query xmlns="http://jabber.org/protocol/muc#admin">
+ <item affiliation="none" jid="easemob-demo#chatdemoui_lwz2@easemob.com"/>
+ </query>
+ </iq>
+ <presence to="easemob-demo#chatdemoui_1479811172349@conference.easemob.com/mt002" type="unavailable"/>
+ * @deprecated
  */
-// <iq id="5CD33172-7B62-41B7-98BC-CE6EF840C4F6_easemob_occupants_change_affiliation" to="easemob-demo#chatdemoui_1477481609392@conference.easemob.com" type="set">
-//     <query xmlns="http://jabber.org/protocol/muc#admin">
-//         <item affiliation="none" jid="easemob-demo#chatdemoui_lwz2@easemob.com"/>
-//     </query>
-// </iq>
-// <presence to="easemob-demo#chatdemoui_1479811172349@conference.easemob.com/mt002" type="unavailable"/>
-
 connection.prototype.leaveGroupBySelf = function (options) {
     var self = this;
     var sucFn = options.success || _utils.emptyfn;
@@ -2604,18 +3656,22 @@ connection.prototype.leaveGroupBySelf = function (options) {
 };
 
 /**
- * leaveGroup 被踢出群组
+ * 群主从群组中踢人，后续会改为调用RestFul API
  *
- * @param options
+ * @param {Object} options -
+ * @param {string[]} options.list - 需要从群组移除的好友ID组成的数组
+ * @param {string} options.roomId - 群组ID
+ * @deprecated
+ * @example
+ <iq id="9fb25cf4-1183-43c9-961e-9df70e300de4:sendIQ" to="easemob-demo#chatdemoui_1477481597120@conference.easemob.com" type="set" xmlns="jabber:client">
+ <query xmlns="http://jabber.org/protocol/muc#admin">
+ <item affiliation="none" jid="easemob-demo#chatdemoui_lwz4@easemob.com"/>
+ <item jid="easemob-demo#chatdemoui_lwz4@easemob.com" role="none"/>
+ <item affiliation="none" jid="easemob-demo#chatdemoui_lwz2@easemob.com"/>
+ <item jid="easemob-demo#chatdemoui_lwz2@easemob.com" role="none"/>
+ </query>
+ </iq>
  */
-// <iq id="9fb25cf4-1183-43c9-961e-9df70e300de4:sendIQ" to="easemob-demo#chatdemoui_1477481597120@conference.easemob.com" type="set" xmlns="jabber:client">
-//     <query xmlns="http://jabber.org/protocol/muc#admin">
-//         <item affiliation="none" jid="easemob-demo#chatdemoui_lwz4@easemob.com"/>
-//         <item jid="easemob-demo#chatdemoui_lwz4@easemob.com" role="none"/>
-//         <item affiliation="none" jid="easemob-demo#chatdemoui_lwz2@easemob.com"/>
-//         <item jid="easemob-demo#chatdemoui_lwz2@easemob.com" role="none"/>
-//     </query>
-// </iq>
 connection.prototype.leaveGroup = function (options) {
     var sucFn = options.success || _utils.emptyfn;
     var errFn = options.error || _utils.emptyfn;
@@ -2648,10 +3704,11 @@ connection.prototype.leaveGroup = function (options) {
 };
 
 /**
- * addGroupMembers 添加群组成员
+ * 添加群组成员
  *
- * @param options
-
+ * @param {Object} options -
+ * @deprecated
+ * @example
  Attention the sequence: message first (每个成员单独发一条message), iq second (多个成员可以合成一条iq发)
  <!-- 添加成员通知：send -->
  <message to='easemob-demo#chatdemoui_1477482739698@conference.easemob.com'>
@@ -2668,7 +3725,6 @@ connection.prototype.leaveGroup = function (options) {
  </query>
  </iq>
  */
-
 connection.prototype.addGroupMembers = function (options) {
     var sucFn = options.success || _utils.emptyfn;
     var errFn = options.error || _utils.emptyfn;
@@ -2709,9 +3765,10 @@ connection.prototype.addGroupMembers = function (options) {
 };
 
 /**
- * acceptInviteFromGroup 接受加入申请
+ * 接受加入申请
  *
- * @param options
+ * @param {Object} options -
+ * @deprecated
  */
 connection.prototype.acceptInviteFromGroup = function (options) {
     options.success = function () {
@@ -2722,10 +3779,11 @@ connection.prototype.acceptInviteFromGroup = function (options) {
 };
 
 /**
- * rejectInviteFromGroup 拒绝入群申请
- *
- * throw request for now 暂时不处理，直接丢弃
- *
+ * 拒绝入群申请
+ * @param {Object} options -
+ * @example
+ throw request for now 暂时不处理，直接丢弃
+
  <message to='easemob-demo#chatdemoui_mt002@easemob.com' from='easmeob-demo#chatdemoui_mt001@easemob.com' id='B83B7210-BCFF-4DEE-AB28-B9FE5579C1E2'>
  <x xmlns='http://jabber.org/protocol/muc#user'>
  <apply to='easemob-demo#chatdemoui_groupid1@conference.easemob.com' from='easmeob-demo#chatdemoui_mt001@easemob.com' toNick='llllll'>
@@ -2733,8 +3791,7 @@ connection.prototype.acceptInviteFromGroup = function (options) {
  </apply>
  </x>
  </message>
- *
- * @param options
+ * @deprecated
  */
 connection.prototype.rejectInviteFromGroup = function (options) {
     // var from = _getJidByName(options.from, this);
@@ -2752,6 +3809,11 @@ connection.prototype.rejectInviteFromGroup = function (options) {
     // this.sendCommand(dom.tree());
 };
 
+/**
+ * 创建群组-异步
+ * @param {Object} p -
+ * @deprecated
+ */
 connection.prototype.createGroupAsync = function (p) {
     var roomId = p.from
     var me = this;
@@ -2767,7 +3829,7 @@ connection.prototype.createGroupAsync = function (p) {
     // Strophe.info('step 1 ----------');
     // Strophe.info(options);
     me.context.stropheConn.sendIQ(iq.tree(), function (msgInfo) {
-        // log(msgInfo);
+        // console.log(msgInfo);
 
         // for ie hack
         if ('setAttribute' in msgInfo) {
@@ -2787,6 +3849,9 @@ connection.prototype.createGroupAsync = function (p) {
             var valueDom = field.getElementsByTagName('value')[0];
             Strophe.info(fieldVar);
             switch (fieldVar) {
+                case 'muc#roomconfig_maxusers':
+                    _setText(valueDom, options.optionsMaxUsers || 200);
+                    break;
                 case 'muc#roomconfig_roomname':
                     _setText(valueDom, options.subject || '');
                     break;
@@ -2846,14 +3911,15 @@ connection.prototype.createGroupAsync = function (p) {
 };
 
 /**
- * createGroup 创建群组
- *
+ * 创建群组
+ * @param {Object} options -
+ * @deprecated
+ * @example
  * 1. 创建申请 -> 得到房主身份
  * 2. 获取房主信息 -> 得到房间form
  * 3. 完善房间form -> 创建成功
  * 4. 添加房间成员
  * 5. 消息通知成员
- * @param options
  */
 connection.prototype.createGroup = function (options) {
     this.groupOption = options;
@@ -2867,6 +3933,687 @@ connection.prototype.createGroup = function (options) {
 
     // createGroupACK
     this.sendCommand(pres.tree());
+};
+
+/**
+ * 通过RestFul API接口创建群组
+ * @param opt {Object} - 群组信息
+ * @param opt.data.groupname {string} - 群组名
+ * @param opt.data.desc {string} - 群组描述
+ * @param opt.data.members {string[]} - 群好友列表
+ * @param opt.data.public {Boolean} - true: 公开群，false: 私有群
+ * @param opt.data.approval {Boolean} - 前提：opt.data.public=true, true: 加群需要审批，false: 加群无需审批
+ * @param opt.data.allowinvites {Boolean} - 前提：opt.data.public=false, true: 允许成员邀请入群，false: 不允许成员邀请入群
+ * @since 1.4.11
+ */
+connection.prototype.createGroupNew = function (opt) {
+    opt.data.owner = this.user;
+    var options = {
+        url: this.apiUrl + '/' + this.orgName + '/' + this.appName + '/chatgroups',
+        dataType: 'json',
+        type: 'POST',
+        data: JSON.stringify(opt.data),
+        headers: {
+            'Authorization': 'Bearer ' + this.token,
+            'Content-Type': 'application/json'
+        }
+    };
+    options.success = function (respData) {
+        opt.success(respData);
+        this.onCreateGroup(respData);
+    }.bind(this);
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API屏蔽群组，只对移动端有效
+ * @param {Object} options -
+ * @param {string} options.groupId - 需要屏蔽的群组ID
+ * @since 1.4.11
+ */
+connection.prototype.blockGroup = function (opt) {
+    var groupId = opt.groupId;
+    groupId = 'notification_ignore_' + groupId;
+    var data = {
+        entities: []
+    };
+    data.entities[0] = {};
+    data.entities[0][groupId] = true;
+    var options = {
+        type: 'PUT',
+        url: this.apiUrl + '/' + this.orgName + '/'
+        + this.appName + '/' + 'users' + '/' + this.user,
+        data: JSON.stringify(data),
+        headers: {
+            'Authorization': 'Bearer ' + this.token,
+            'Content-Type': 'application/json'
+        }
+    };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API发出入群申请
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组ID
+ * @since 1.4.11
+ */
+connection.prototype.joinGroup = function (opt) {
+    var options = {
+        url: this.apiUrl + '/' + this.orgName + '/'
+        + this.appName + '/' + 'chatgroups' + '/' + opt.groupId + '/' + 'apply',
+        type: 'POST',
+        dataType: 'json',
+        headers: {
+            'Authorization': 'Bearer ' + this.token,
+            'Content-Type': 'application/json'
+        }
+    };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API分页获取群组列表
+ * @param {Object} opt -
+ * @param {Number} opt.limit - 每一页群组的最大数目
+ * @param {string} opt.cursor=null - 游标，如果数据还有下一页，API 返回值会包含此字段，传递此字段可获取下一页的数据，为null时获取第一页数据
+ * @since 1.4.11
+ */
+connection.prototype.listGroups = function (opt) {
+    var requestData = [];
+    requestData['limit'] = opt.limit;
+    requestData['cursor'] = opt.cursor;
+    if (!requestData['cursor'])
+        delete requestData['cursor'];
+    if (isNaN(opt.limit)) {
+        throw 'The parameter \"limit\" should be a number';
+        return;
+    }
+    var options = {
+        url: this.apiUrl + '/' + this.orgName + '/' + this.appName + '/publicchatgroups',
+        type: 'GET',
+        dataType: 'json',
+        data: requestData,
+        headers: {
+            'Authorization': 'Bearer ' + this.token,
+            'Content-Type': 'application/json'
+        }
+    };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API根据groupId获取群组详情
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组ID
+ * @since 1.4.11
+ */
+connection.prototype.getGroupInfo = function (opt) {
+    var options = {
+        url: this.apiUrl + '/' + this.orgName + '/' + this.appName + '/chatgroups/' + opt.groupId,
+        type: 'GET',
+        dataType: 'json',
+        headers: {
+            'Authorization': 'Bearer ' + this.token,
+            'Content-Type': 'application/json'
+        }
+    };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API列出某用户所加入的所有群组
+ * @param {Object} opt - 加入两个回调函数即可，success, error
+ * @since 1.4.11
+ */
+connection.prototype.getGroup = function (opt) {
+    var options = {
+        url: this.apiUrl + '/' + this.orgName +
+        '/' + this.appName + '/' + 'users' + '/' +
+        this.user + '/' + 'joined_chatgroups',
+        dataType: 'json',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + this.token,
+            'Content-Type': 'application/json'
+        }
+    };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API分页列出群组的所有成员
+ * @param {Object} opt -
+ * @param {Number} opt.pageNum - 页码
+ * @param {Number} opt.pageSize - 每一页的最大群成员数目
+ * @param {string} opt.groupId - 群ID
+ */
+connection.prototype.listGroupMember = function (opt) {
+    if (isNaN(opt.pageNum) || opt.pageNum <= 0) {
+        throw 'The parameter \"pageNum\" should be a positive number';
+        return;
+    } else if (isNaN(opt.pageSize) || opt.pageSize <= 0) {
+        throw 'The parameter \"pageSize\" should be a positive number';
+        return;
+    } else if (opt.groupId === null && typeof opt.groupId === 'undefined') {
+        throw 'The parameter \"groupId\" should be added';
+        return;
+    }
+    var requestData = [],
+        groupId = opt.groupId;
+    requestData['pagenum'] = opt.pageNum;
+    requestData['pagesize'] = opt.pageSize;
+    var options = {
+        url: this.apiUrl + '/' + this.orgName + '/' + this.appName + '/chatgroups'
+        + '/' + groupId + '/users',
+        dataType: 'json',
+        type: 'GET',
+        data: requestData,
+        headers: {
+            'Authorization': 'Bearer ' + this.token,
+            'Content-Type': 'application/json'
+        }
+    };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API禁止群用户发言
+ * @param {Object} opt -
+ * @param {string} opt.username - 被禁言的群成员的ID
+ * @param {Number} opt.muteDuration - 被禁言的时长
+ * @param {string} opt.groupId - 群ID
+ * @since 1.4.11
+ */
+connection.prototype.mute = function (opt) {
+    var groupId = opt.groupId,
+        requestData = {
+            "usernames": [opt.username],
+            "mute_duration": opt.muteDuration
+        },
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName + '/' + 'chatgroups'
+            + '/' + groupId + '/' + 'mute',
+            dataType: 'json',
+            type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify(requestData)
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API取消对用户禁言
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群ID
+ * @param {string} opt.username - 被取消禁言的群用户ID
+ * @since 1.4.11
+ */
+connection.prototype.removeMute = function (opt) {
+    var groupId = opt.groupId,
+        username = opt.username;
+    var options = {
+        url: this.apiUrl + '/' + this.orgName + '/' + this.appName + '/' + 'chatgroups'
+        + '/' + groupId + '/' + 'mute' + '/' + username,
+        dataType: 'json',
+        type: 'DELETE',
+        headers: {
+            'Authorization': 'Bearer ' + this.token,
+            'Content-Type': 'application/json'
+        }
+    };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API获取群组下所有管理员
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组ID
+ * @since 1.4.11
+ */
+connection.prototype.getGroupAdmin = function (opt) {
+    var groupId = opt.groupId;
+    var options = {
+        url: this.apiUrl + '/' + this.orgName + '/' + this.appName + '/chatgroups'
+        + '/' + groupId + '/admin',
+        dataType: 'json',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + this.token,
+            'Content-Type': 'application/json'
+        }
+    };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API获取群组下所有被禁言成员
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组ID
+ */
+connection.prototype.getMuted = function (opt) {
+    var groupId = opt.groupId;
+    var options = {
+        url: this.apiUrl + '/' + this.orgName + '/' + this.appName + '/chatgroups'
+        + '/' + groupId + '/mute',
+        dataType: 'json',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + this.token,
+            'Content-Type': 'application/json'
+        }
+    };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API设置群管理员
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组ID
+ * @param {string} opt.username - 用户ID
+ */
+connection.prototype.setAdmin = function (opt) {
+    var groupId = opt.groupId,
+        requestData = {
+            newadmin: opt.username
+        },
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName + '/' + 'chatgroups'
+            + '/' + groupId + '/' + 'admin',
+            type: "POST",
+            dataType: 'json',
+            data: JSON.stringify(requestData),
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API取消群管理员
+ * @param {Object} opt -
+ * @param {string} opt.gorupId - 群组ID
+ * @param {string} opt.username - 用户ID
+ */
+connection.prototype.removeAdmin = function (opt) {
+    var groupId = opt.groupId,
+        username = opt.username,
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName + '/' + 'chatgroups'
+            + '/' + groupId + '/' + 'admin' + '/' + username,
+            type: 'DELETE',
+            dataType: 'json',
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API同意用户加入群
+ * @param {Object} opt -
+ * @param {string} opt.applicant - 申请加群的用户名
+ * @param {Object} opt.groupId - 群组ID
+ */
+connection.prototype.agreeJoinGroup = function (opt) {
+    var groupId = opt.groupId,
+        requestData = {
+            "applicant": opt.applicant,
+            "verifyResult": true,
+            "reason": "no clue"
+        },
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName
+            + '/' + 'chatgroups' + '/' + groupId + '/' + 'apply_verify',
+            type: 'POST',
+            dataType: "json",
+            data: JSON.stringify(requestData),
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API拒绝用户加入群
+ * @param {Object} opt -
+ * @param {string} opt.applicant - 申请加群的用户名
+ * @param {Object} opt.groupId - 群组ID
+ */
+connection.prototype.rejectJoinGroup = function (opt) {
+    var groupId = opt.groupId,
+        requestData = {
+            "applicant": opt.applicant,
+            "verifyResult": false,
+            "reason": "no clue"
+        },
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName
+            + '/' + 'chatgroups' + '/' + groupId + '/' + 'apply_verify',
+            type: 'POST',
+            dataType: "json",
+            data: JSON.stringify(requestData),
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API添加用户至群组黑名单(单个)
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组ID
+ * @param {stirng} opt.username - 用户ID
+ */
+connection.prototype.groupBlockSingle = function (opt) {
+    var groupId = opt.groupId,
+        username = opt.username,
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName
+            + '/' + 'chatgroups' + '/' + groupId + '/' + 'blocks' + '/'
+            + 'users' + '/' + username,
+            type: 'POST',
+            dataType: 'json',
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API添加用户至群组黑名单(批量)
+ * @param {Object} opt -
+ * @param {string[]} opt.username - 用户ID数组
+ * @param {string} opt.groupId - 群组ID
+ */
+connection.prototype.groupBlockMulti = function (opt) {
+    var groupId = opt.groupId,
+        usernames = opt.usernames,
+        requestData = {
+            usernames: usernames
+        },
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName
+            + '/' + 'chatgroups' + '/' + groupId + '/' + 'blocks' + '/'
+            + 'users',
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            dataType: 'json',
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API将用户从群黑名单移除（单个）
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组ID
+ * @param {string} opt.username - 用户名
+ */
+connection.prototype.removeGroupBlockSingle = function (opt) {
+    var groupId = opt.groupId,
+        username = opt.username,
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName
+            + '/' + 'chatgroups' + '/' + groupId + '/' + 'blocks' + '/'
+            + 'users' + '/' + username,
+            type: 'DELETE',
+            dataType: 'json',
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API将用户从群黑名单移除（批量）
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组名
+ * @param {string[]} opt.username - 用户ID数组
+ */
+connection.prototype.removeGroupBlockMulti = function (opt) {
+    var groupId = opt.groupId,
+        username = opt.username.join(','),
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName
+            + '/' + 'chatgroups' + '/' + groupId + '/' + 'blocks' + '/'
+            + 'users' + '/' + username,
+            type: 'DELETE',
+            dataType: 'json',
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API解散群组
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组ID
+ */
+connection.prototype.dissolveGroup = function (opt) {
+    var groupId = opt.groupId,
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName
+            + '/' + 'chatgroups' + '/' + groupId + '?version=v3',
+            type: 'DELETE',
+            dataType: 'json',
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API获取群组黑名单
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组ID
+ */
+connection.prototype.getGroupBlacklistNew = function (opt) {
+    var groupId = opt.groupId,
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName
+            + '/' + 'chatgroups' + '/' + groupId + '/' + 'blocks' + '/' + 'users',
+            type: 'GET',
+            dataType: 'json',
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API离开群组
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组ID
+ */
+connection.prototype.quitGroup = function (opt) {
+    var groupId = opt.groupId,
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName
+            + '/' + 'chatgroups' + '/' + groupId + '/' + 'quit',
+            type: 'DELETE',
+            dataType: 'json',
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API修改群信息
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组ID
+ * @param {string} opt.groupName - 群组名
+ * @param {string} opt.description - 群组简介
+ */
+connection.prototype.modifyGroup = function (opt) {
+    var groupId = opt.groupId,
+        requestData = {
+            groupname: opt.groupName,
+            description: opt.description
+        },
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName
+            + '/' + 'chatgroups' + '/' + groupId,
+            type: 'PUT',
+            data: JSON.stringify(requestData),
+            dataType: 'json',
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API删除单个群成员
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组ID
+ * @param {string} opt.username - 用户名
+ */
+connection.prototype.removeSingleGroupMember = function (opt) {
+    var groupId = opt.groupId,
+        username = opt.username,
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName
+            + '/' + 'chatgroups' + '/' + groupId + '/' + 'users' + '/'
+            + username,
+            type: 'DELETE',
+            dataType: 'json',
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API删除多个群成员
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组ID
+ * @param {string[]} opt.users - 用户ID数组
+ */
+connection.prototype.removeMultiGroupMember = function (opt) {
+    var groupId = opt.groupId,
+        users = opt.users.join(','),
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName
+            + '/' + 'chatgroups' + '/' + groupId + '/' + 'users' + '/'
+            + users,
+            type: 'DELETE',
+            dataType: 'json',
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
+};
+
+/**
+ * 通过RestFul API邀请群成员
+ * @param {Object} opt -
+ * @param {string} opt.groupId - 群组名
+ * @param {string[]} opt.users - 用户名ID数组
+ */
+connection.prototype.inviteToGroup = function (opt) {
+    var groupId = opt.groupId,
+        users = opt.users,
+        requestData = {
+            usernames: users
+        },
+        options = {
+            url: this.apiUrl + '/' + this.orgName + '/' + this.appName
+            + '/' + 'chatgroups' + '/' + groupId + '/' + 'invite',
+            type: 'POST',
+            data: JSON.stringify(requestData),
+            dataType: 'json',
+            headers: {
+                'Authorization': 'Bearer ' + this.token,
+                'Content-Type': 'application/json'
+            }
+        };
+    options.success = opt.success || _utils.emptyfn;
+    options.error = opt.error || _utils.emptyfn;
+    WebIM.utils.ajax(options);
 };
 
 function _setText(valueDom, v) {
@@ -2898,6 +4645,23 @@ WebIM.doQuery = function (str, suc, fail) {
         }
     );
 };
+
+/**************************** debug ****************************/
+function logMessage(message) {
+    WebIM && WebIM.config.isDebug && console.log(WebIM.utils.ts() + '[recv] ', message.data);
+}
+
+if (WebIM && WebIM.config.isDebug) {
+    Strophe.Connection.prototype.rawOutput = function (data) {
+        console.log('%c ' + WebIM.utils.ts() + '[send] ' + data, "background-color: #e2f7da");
+    }
+}
+
+if (WebIM && WebIM.config && WebIM.config.isSandBox) {
+    WebIM.config.xmppURL = WebIM.config.xmppURL.replace('.easemob.', '-sandbox.easemob.');
+    WebIM.config.apiURL = WebIM.config.apiURL.replace('.easemob.', '-sdb.easemob.');
+}
+
 
 module.exports = WebIM;
 

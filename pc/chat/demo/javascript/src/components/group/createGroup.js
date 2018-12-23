@@ -48,17 +48,18 @@ var CreateGroup = React.createClass({
         return {
             selectedOption: 'option1',
             selectedOption2: 'option3',
+            allowInvite: true,
             colors: []
         }
     },
     onSubmit: function () {
         var value = this.refs.input.refs.input.value;
         var info = this.refs.textarea.value;
-        // log('onSubmit', value, info);
         var permission_group = this.state.selectedOption;
         var permission_member = this.state.selectedOption2;
-        var friendsSelected = [];//this.refs.friendList.refs.multiSelected.label();
+        var friendsSelected = [];
         var friendsValues = this.refs.friendList.refs.multiSelected.value();
+        var allowInvite = this.state.allowInvite;
         if (!value) {
             Demo.api.NotifyError(Demo.lan.groupNameNotEmpty);
             return;
@@ -73,8 +74,6 @@ var CreateGroup = React.createClass({
         var option2 = permission_member == "option3" ? 0 : 1;
         var style = styles[option1 * 2 + option2];
 
-        // friendsSelected = '["' + friendsSelected.replace(/, /g, '","') + '"]';
-        // log(style)
         if (WebIM.config.isWindowSDK) {
             WebIM.doQuery('{"type":"createGroup","subject":"' + value + '","description":"' + info + '","welcomeMessage":"","style":"' + style + '","maxUserCount":"200","members":' + JSON.stringify(friendsSelected) + '}',
                 function (response) {
@@ -85,19 +84,29 @@ var CreateGroup = React.createClass({
                 });
         } else {
             Demo.createGroupName = value;
-            Demo.conn.createGroup({
-                subject: value,
-                description: info,
-                members: friendsSelected,
-                optionsPublic: style == 'PUBLIC_JOIN_OPEN' || style == 'PUBLIC_JOIN_APPROVAL',
-                optionsModerate: style != 'PUBLIC_JOIN_OPEN',
-                // 是否只允许 会员进入 ??
-                optionsMembersOnly: style != 'PUBLIC_JOIN_OPEN',
-                optionsAllowInvites: style == 'PRIVATE_MEMBER_INVITE',
-            });
+            var pub = false;
+            if (style == 'PUBLIC_JOIN_OPEN'
+                || style == 'PUBLIC_JOIN_APPROVAL')
+                pub = true;
+            var approval = option2 == 0;
+            var options = {
+                data: {
+                    groupname: value,
+                    desc: info,
+                    members: friendsSelected,
+                    public: pub,
+                    approval: approval,
+                    allowinvites: allowInvite
+                },
+                success: function (respData) {
+
+                },
+                error: function () {
+
+                }
+            };
+            Demo.conn.createGroupNew(options);
         }
-
-
         this.close();
     },
 
@@ -114,6 +123,12 @@ var CreateGroup = React.createClass({
             selectedOption2: changeEvent.target.value
         });
     },
+    handleInviteChange: function (e) {
+        var checked = e.target.checked;
+        this.setState({
+            allowInvite: checked
+        });
+    },
     render: function () {
         return (
             <div className='webim-friend-options'>
@@ -126,7 +141,7 @@ var CreateGroup = React.createClass({
                         <textarea ref='textarea' placeholder={Demo.lan.groupDescription}></textarea>
                         <br/>
                         <br/>
-                        <div >
+                        <div>
                             <label>
                                 {Demo.lan.groupPermission}:
                             </label>
@@ -143,7 +158,7 @@ var CreateGroup = React.createClass({
                                 <span className="radio_span">私有群</span>
                             </label>
                         </div>
-                        <div>
+                        <div className={this.state.selectedOption === 'option1' ? '' : 'hide'}>
                             <label>
                                 {Demo.lan.groupMemberPermission}:
                             </label>
@@ -160,6 +175,16 @@ var CreateGroup = React.createClass({
                                        onChange={this.handleOptionChange2}/>
                                 <span
                                     className="radio_span">{this.state.selectedOption === 'option1' ? '随便加' : '允许'}</span>
+                            </label>
+                        </div>
+                        <div className={this.state.selectedOption === 'option1' ? 'hide' : ''}>
+                            <label>
+                                {Demo.lan.allowInvite}:
+                            </label>
+                            <label>
+                                <input className="checkbox" type="checkbox"
+                                       defaultChecked='checked'
+                                       onChange={this.handleInviteChange}/>
                             </label>
                         </div>
                     </div>

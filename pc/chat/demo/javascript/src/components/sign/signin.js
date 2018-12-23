@@ -13,55 +13,13 @@ module.exports = React.createClass({
         };
     },
 
-    validTabs: function () {
-        if (!WebIM.config.isMultiLoginSessions || !window.localStorage) {
-            return true;
-        } else {
-            Demo.userTimestamp = new Date().getTime();
-
-            var key = 'easemob_' + Demo.user;
-            var val = window.localStorage.getItem(key);
-            var count = 0;
-            var oneMinute = 60 * 1000;
-
-            if (val === undefined || val === '' || val === null) {
-                val = 'last';
-            }
-            val = Demo.userTimestamp + ',' + val;
-            var timestampArr = val.split(',');
-            var uniqueTimestampArr = [];
-            // Unique
-
-            for (var o in timestampArr) {
-                if (timestampArr[o] === 'last')
-                    continue;
-                uniqueTimestampArr[timestampArr[o]] = 1;
-            }
-
-            val = 'last';
-            for (var o in uniqueTimestampArr) {
-                // if more than one minute, cut it
-                if (parseInt(o) + oneMinute < Demo.userTimestamp) {
-                    continue;
-                }
-                count++;
-                if (count > this.state.pageLimit) {
-                    return false;
-                }
-                val = o + ',' + val;
-            }
-            window.localStorage.setItem(key, val);
-            return true;
-        }
-    },
-
     keyDown: function (e) {
         if (e && e.keyCode === 13) {
             this.login();
         }
     },
 
-    login: function(){
+    login: function () {
         var username = this.refs.name.refs.input.value || (WebIM.config.autoSignIn ? WebIM.config.autoSignInName : '');
         var auth = this.refs.auth.refs.input.value || (WebIM.config.autoSignIn ? WebIM.config.autoSignInPwd : '');
         var type = this.refs.token.refs.input.checked;
@@ -85,26 +43,26 @@ module.exports = React.createClass({
             accessToken: auth,
             appKey: this.props.config.appkey,
             success: function (token) {
-                var encryptUsername = WebIM.utils.encrypt(username);
-                var encryptAuth = WebIM.utils.encrypt(auth);
+                var encryptUsername = btoa(username);
+                encryptUsername = encryptUsername.replace(/=*$/g, "");
                 var token = token.access_token;
-                var url = 'index.html?username=' + encryptUsername;
+                var url = '#username=' + encryptUsername;
                 WebIM.utils.setCookie('webim_' + encryptUsername, token, 1);
-                window.history.pushState({}, 0, url);
+                window.location.href = url
+                Demo.token = token;
             },
-            error: function(){
-                window.history.pushState({}, 0, 'index.html');
+            error: function () {
+                window.location.href = '#'
+
             }
         };
 
         if (!type) {
             delete options.accessToken;
         }
-        console.log('Record:: ', Demo.chatRecord);
-        if(Demo.user){
-            if(Demo.user != username){
+        if (Demo.user) {
+            if (Demo.user != username) {
                 Demo.chatRecord = {};
-                console.log('clearclear');
             }
         }
 
@@ -116,8 +74,20 @@ module.exports = React.createClass({
 
         if (WebIM.config.isWindowSDK) {
             var me = this;
-            WebIM.doQuery('{"type":"login","id":"' + options.user + '","password":"' + options.pwd + '"}',
-                function (response) {
+            if (!WebIM.config.appDir) {
+                WebIM.config.appDir = "";
+            }
+            if (!WebIM.config.imIP) {
+                WebIM.config.imIP = "";
+            }
+            if (!WebIM.config.imPort) {
+                WebIM.config.imPort = "";
+            }
+            if (!WebIM.config.restIPandPort) {
+                WebIM.config.restIPandPort = "";
+            }
+            WebIM.doQuery('{"type":"login","id":"' + options.user + '","password":"' + options.pwd
+                + '","appDir":"' + WebIM.config.appDir + '","appKey":"' + WebIM.config.appkey + '","imIP":"' + WebIM.config.imIP + '","imPort":"' + WebIM.config.imPort + '","restIPandPort":"' + WebIM.config.restIPandPort + '"}', function (response) {
                     Demo.conn.onOpened();
                 },
                 function (code, msg) {
@@ -125,15 +95,7 @@ module.exports = React.createClass({
                     Demo.api.NotifyError('open:' + code + " - " + msg);
                 });
         } else {
-            if (this.validTabs() === true) {
-                Demo.conn.open(options);
-            }
-            else {
-                Demo.conn.onError({
-                    type: "One account can't open more than " + this.state.pageLimit + ' pages in one minute on the same browser'
-                });
-                return;
-            }
+            Demo.conn.open(options);
         }
     },
 
@@ -146,22 +108,13 @@ module.exports = React.createClass({
     },
 
     componentWillMount: function () {
-        var pattern = /([^\?|&])\w+=([^&]+)/g;
-        var username, auth, type;
-        if(window.location.search){
-            var args = window.location.search.match(pattern);
-            if(args.length == 1 && args[0]) {
-                username = args[0].substr(9);
-                auth = WebIM.utils.getCookie()['webim_'+username];
-                type = true;
-            }
-
-            if(username && auth){
-                username = WebIM.utils.decrypt(username);
-                this.signin(username, auth, type);
-            }else{
-                window.history.pushState({}, 0, 'index.html');
-            }
+        var uri = WebIM.utils.parseHrefHash();
+        var username = uri.username;
+        var auth = WebIM.utils.getCookie()['webim_' + username];
+        Demo.token = auth;
+        if (username && auth) {
+            username = atob(username);
+            this.signin(username, auth, true);
         }
     },
 

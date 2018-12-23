@@ -7,7 +7,6 @@ var Loading = require('./common/loading');
 
 module.exports = React.createClass({
     getInitialState: function () {
-
         return {
             signIn: true,
             signUp: false,
@@ -55,6 +54,7 @@ module.exports = React.createClass({
                           loading={this.loading} {...props} />
                     <Loading show={this.state.loadingStatus} msg={this.state.loadingMsg}/>
                 </div>
+                <footer className={'copyright' + (WebIM.config.isWindowSDK ? ' hide' : '')}>© {year} 环信科技</footer>
             </div>
         );
     }

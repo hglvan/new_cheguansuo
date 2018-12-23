@@ -21,6 +21,7 @@ var ShowGroupBlacklist = React.createClass({
         var me = this;
         Demo.api.blacklist.getGroupBlacklist({
             roomId: this.props.roomId,
+            groupId: this.props.roomId,
             success: function (list) {
                 me.setState({
                     list: list
@@ -30,19 +31,36 @@ var ShowGroupBlacklist = React.createClass({
     },
 
     onRemoveFromGroupBlackList: function (value) {
-        var me = this;
         var list = this.state.list;
 
-        Demo.api.blacklist.removeGroupMemberFromBlacklist({
-            roomId: this.props.roomId,
-            to: value,
-            success: function () {
-                delete list[value];
-                me.setState({
-                    list: list
-                })
-            }
-        });
+        if (WebIM.config.isWindowSDK) {
+            //TODO:isWindowSDK
+        } else {
+            var options = {
+                groupId: Demo.selected,
+                username: value,
+                success: function () {
+                    for(var i in list){
+                        if(list[i] == value){
+                            delete list[i];
+                        }
+                    }
+                    this.setState({list: list});
+                }.bind(this)
+            };
+            Demo.conn.removeGroupBlockSingle(options);
+        }
+
+        // value = ['zzf2', 'zzf3'];
+        // var options = {
+        //     groupId: Demo.selected,
+        //     username: value,
+        //     success: function(){
+        //         delete list[value];
+        //         this.setState({list: list});
+        //     }.bind(this)
+        // };
+        // Demo.conn.removeGroupBlockMulti(options);
     },
 
     close: function () {
@@ -52,15 +70,17 @@ var ShowGroupBlacklist = React.createClass({
     render: function () {
         var items = [];
         _.each(this.state.list, (item, k) => {
-            items.push(
-                (
-                    <li className="webim-blacklist-item" key={item.name}>
-                        {item.name}
-                        <i className="webim-leftbar-icon font smaller"
-                           onClick={this.onRemoveFromGroupBlackList.bind(this, item.name)}>d</i>
-                    </li>
+            if(item){
+                items.push(
+                    (
+                        <li className="webim-blacklist-item" key={item}>
+                            {item}
+                            <i className="webim-leftbar-icon font smaller"
+                               onClick={this.onRemoveFromGroupBlackList.bind(this, item)}>d</i>
+                        </li>
+                    )
                 )
-            )
+            }
         });
 
         return (

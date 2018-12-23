@@ -98,7 +98,8 @@
     display: inline-block;
     border: 1px solid #cccccc;
     height: 600px;
-    width: 600px;
+    /* width: 600px; */
+    width: 820px;
     line-height: 600px;
     box-sizing: border-box;
     font-size: 36px;

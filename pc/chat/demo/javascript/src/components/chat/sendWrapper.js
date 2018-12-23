@@ -80,7 +80,7 @@ module.exports = React.createClass({
             msg: value,
             to: Demo.selected,
             roomType: chatroom,
-            success: function (id) {
+            success: function (id, mid) {
                 me.state.showEmoji && me.setState({showEmoji: false});
             }
         });
@@ -119,12 +119,17 @@ module.exports = React.createClass({
         }
     },
 
-    call: function () {
-        console.log('sendWrapper::call');
+    callVideo: function () {
+        console.log('sendWrapper::callVideo');
         Demo.call.caller = Demo.user;
         Demo.call.makeVideoCall(Demo.selected);
     },
 
+    callVoice: function () {
+        console.log('sendWrapper::callVoice');
+        Demo.call.caller = Demo.user;
+        Demo.call.makeVoiceCall(Demo.selected);
+    },
 
     sendPicture: function () {
         this.props.sendPicture(this.props.chatType);
@@ -134,6 +139,15 @@ module.exports = React.createClass({
     },
     sendFile: function () {
         this.props.sendFile(this.props.chatType);
+    },
+    clear: function () {
+        var user = Demo.selected;
+        var chatDom = document.getElementById('wrapper' + user);
+        chatDom.innerHTML = "";
+        var itemDom = document.getElementById(user);
+        itemDom.querySelector('em').innerHTML = '';
+        if (Demo.chatRecord[user])
+            delete Demo.chatRecord[user];
     },
     render: function () {
 
@@ -152,8 +166,12 @@ module.exports = React.createClass({
                               onClick={this.sendFile}>S</span>);
         if (WebIM.config.isWebRTC && Demo.selectedCate == 'friends') {
             roomMember.push(<span key={keyValue++} className='webim-audio-icon font smaller'
-                                  onClick={this.call}>a</span>);
+                                  onClick={this.callVideo}>a</span>);
+            roomMember.push(<span key={keyValue++} className='webim-audio-icon font smaller'
+                                  onClick={this.callVoice}>z</span>);
         }
+        roomMember.push(<span key={keyValue++} className='webim-file-icon font smaller'
+                              onClick={this.clear}>T</span>);
         return (
             <div className='webim-send-wrapper'>
                 <div className='webim-chatwindow-options'>
@@ -167,5 +185,3 @@ module.exports = React.createClass({
         );
     }
 });
-
-

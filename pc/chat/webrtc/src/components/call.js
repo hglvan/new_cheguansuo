@@ -60,13 +60,17 @@ var _Call = {
     },
 
     makeVideoCall: function (callee, accessSid) {
+        var self = this;
+
         var mediaStreamConstaints = {};
-        Util.extend(mediaStreamConstaints, this.mediaStreamConstaints);
+        Util.extend(mediaStreamConstaints, self.mediaStreamConstaints);
+        self.mediaStreamConstaints.video = true;
 
         this.call(callee, mediaStreamConstaints, accessSid);
     },
 
     makeVoiceCall: function (callee, accessSid) {
+        console.log('ScareCrow');
         var self = this;
 
         var mediaStreamConstaints = {};
@@ -129,7 +133,7 @@ var _Call = {
         self.sessId = options.sessId;
         self.rtcId = options.rtcId;
 
-        self.switchPattern();
+        self.switchPattern(options.streamType == "VIDEO" ? "VIDEO" : "VOICE");
         self.pattern._onInitC(from, options, rtkey, tsxId, fromSid);
     },
 
@@ -152,13 +156,13 @@ var _Call = {
             self.tkt = rtcOptions.tkt;
 
 
-            self.switchPattern();
+            self.switchPattern(self.mediaStreamConstaints.audio && self.mediaStreamConstaints.video ? "VIDEO" : "VOICE");
         } else {
             //
         }
     },
 
-    switchPattern: function () {
+    switchPattern: function (streamType) {
         var self = this;
 
         (!self._WebRTCCfg) && (self.pattern = new CommonPattern({
@@ -175,6 +179,7 @@ var _Call = {
             _rtcId: self.rtcId,
 
             webRtc: new WebRTC({
+                streamType: streamType,
                 onGotLocalStream: self.listener.onGotLocalStream,
                 onGotRemoteStream: self.listener.onGotRemoteStream,
                 onError: self.listener.onError
@@ -189,6 +194,12 @@ var _Call = {
 
             },
             onTermCall: (self.listener && self.listener.onTermCall) || function () {
+
+            },
+            onOtherUserOpenVoice: (self.listener && self.listener.onOtherUserOpenVoice) || function () {
+
+            },
+            onOtherUserOpenVideo: (self.listener && self.listener.onOtherUserOpenVideo) || function () {
 
             }
         }));

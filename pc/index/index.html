@@ -54,7 +54,8 @@
             <!--查询页面-->
             <div class="index-box clearfix hidden">
                 <div class="index-wechat common-bg-white">
-                    <iframe src="../chat/index.html" frameborder="0" style="height: 100%; width: 100%;" name="iframeName" id="iframeName"></iframe>
+                        <iframe  frameborder="0" style="height: 100%; width: 100%;" name="iframeName" id="iframeName"></iframe>
+                    <!-- <iframe src='../chat/index.html#username=MTIz&curNode=pjs' frameborder="0" style="height: 100%; width: 100%;" name="iframeName" id="iframeName"></iframe> -->
                     <div id="cookieIframe" class="hidden"></div>
                     </div><!--
                 --><div class="index-rightbox">
@@ -244,14 +245,18 @@
         document.write("<script src='../chat/sdk/dist/strophe-1.2.8.min.js'><\/script>");
 </script>
 <!--sdk-->
-<script src='../chat/sdk/dist/websdk-1.4.8.js'></script>
+<script src='../chat/sdk/dist/websdk-1.4.13.js'></script>
 <!--webrtc-->
 <script>
     if (WebIM.config.isWebRTC) {
         document.write("<script src='../chat/webrtc/dist/adapter.js'><\/script>");
-        document.write("<script src='../chat/webrtc/dist/webrtc-1.4.8.js'><\/script>");
+        document.write("<script src='../chat/webrtc/dist/webrtc-1.4.13.js'><\/script>");
     }
 </script>
 <script type="text/javascript" src="../js/common/common.js"></script>
 <script type="text/javascript" src="../js/index/index.js"></script>
 </html>
+
+<script>
+    $("#iframeName").attr("src",`../chat/index.html#username=${	window.sessionStorage.getItem("userName")}&curNode=${window.sessionStorage.getItem("id")}`)
+</script>
