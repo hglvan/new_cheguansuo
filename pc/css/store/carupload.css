@@ -1,0 +1,135 @@
+.carupload-box{
+    width: 100%;
+    margin: 10px auto;
+    padding: 10px 20px;
+}
+
+.carupload-uploadbar>span, .carupload-itembar>span{
+    font-size: 20px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgb(231, 122, 19);
+}
+.carupload-uploadbox, .carupload-itembox{
+    margin-left: 105px;
+    margin-top: 5px;
+}
+.carupload-uploadbtn>div{
+    display: inline;
+    padding: 5px 8px;
+    border: 1px solid rgb(222, 222, 222);
+    cursor: pointer;
+}
+.carupload-uploadtips{
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+.carupload-uploadimgs>img, .carupload-uploadimgs>div{
+    display: inline-block;
+    width: 120px;
+    height: 120px;
+    border: 1px solid rgb(222, 222, 222);
+    position: relative;
+}
+.carupload-uploadimgs>div>img{
+    position: absolute;
+    width: 40px;
+    top: 36px;
+    left: 40px;
+}
+.carupload-uploadimgs>div>div{
+    position: absolute;
+    font-size: 12px;
+    width: 100%;
+    text-align: center;
+    top: 80px;
+}
+.carupload-itemtable{
+    width: 635px;
+    margin-top: 20px;
+}
+.carupload-itemtabletitle > div{
+    display: inline-block;
+    width: 20%;
+    padding: 3px;
+    border: 1px solid rgb(222, 222, 222);
+}
+.carupload-itemtabletitle > div:nth-child(4) {
+    width: 40%
+}
+.carupload-itemtabletitle > div:nth-child(4) > input {
+    margin-left: 40%;
+}
+.carupload-itemnumbar>span {
+    line-height: 30px;
+}
+.carupload-itemtableline > div{
+    display: inline-block;
+    width: 20%;
+    padding: 10px;
+    border: 1px solid rgb(222, 222, 222);
+    font-size: 23px;
+}
+.carupload-itemtableline > div > input{
+    width: 100%;
+    border: none;
+}
+.carupload-itemtableline > div:nth-child(4) {
+    width: 40%
+}
+.carupload-itemtableline > div:nth-child(4) > input{
+    width: 10%
+}
+.carupload-itemnumbar{
+    display: inline-block;
+    width: 70%;
+}
+.carupload-itemnumbar>div {
+    height: 14px;
+    line-height: 10px;
+    display: inline-block;
+    text-align: center;
+    border: 1px solid #b3b3b3;
+    cursor: pointer;
+}
+
+.carupload-itemnumbar>input {
+    width: 20px;
+    height: 18px;
+    text-align: center;
+}
+
+.carupload-itemtablemore{   
+    padding: 10px;
+    text-align: center;
+    border: 1px solid rgb(222, 222, 222);
+    cursor: pointer;
+}
+
+.carupload-itembtnbar{
+   padding: 20px 220px 40px 0; 
+}
+.carupload-itembtnbar div{
+    float: right;
+    border-radius: 3px;
+    padding: 8px 25px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+.carupload-itemnumbar>div {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    font-size: 22px;
+    border: 1px solid #b3b3b3;
+    line-height: 30px;
+    cursor: pointer;
+}
+.carupload-itemnumbar>input {
+    line-height: 30px;
+    width: 50px;
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
+    padding-top: 8px;
+}

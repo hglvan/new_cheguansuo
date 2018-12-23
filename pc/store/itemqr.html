@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
+    <title>南星车管宝-查找配件</title>
+    <link href="../css/common/common.css" rel="stylesheet" />
+    <link href="../css/store/itemqr.css" rel="stylesheet" />
+</head>
+
+<body class="common-bg-lightyellow">
+    <header>
+        <div class="common-loginbar common-bg-lightgray">
+            <div>
+                <div class="common-loginbtn common-darkgray">登录</div>
+            </div>
+        </div>
+        <div class="common-logobar common-bg-white">
+            <div>
+                <img class="common-logo" src="../images/common/logo-top.png" />
+            </div>
+        </div>
+        <div class="common-navbar common-bg-orange">
+            <div>
+                <ul class="common-navlist">
+                    <li class="common-navitem common-white common-navitem-index">首页</li>
+                    <li class="common-navitem common-white">资讯</li>
+                    <li class="common-navitem common-white  common-active common-navitem-pj" >配件商</li>
+                    <li class="common-navitem common-floatright common-white">个人中心</li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <div class="common-bodyer common-bg-lightgray">
+        <div>
+            <!--查询页面-->
+            <div class="itemqr-box clearfix common-bg-white">
+                <div class="itemqr-title">全部分类</div>
+                <div class="itemqr-search common-bg-lightgray">
+                    <img src="../images/store/search.png">
+                    <input class="common-bg-lightgray itemqr-searchinput" placeholder="搜索相关配件" />
+                    <div class="common-bg-orange common-white itemqr-searchbtn">搜索</div>
+                </div>
+                <div class="itemqr-list">
+                    <!--<div class="itemqr-listbox">
+                        <div class="itemqr-listtitle common-orange">通用系列</div>
+                        <div class="itemqr-listitems">
+                            <span>车蜡</span>
+                            <span>车蜡</span>
+                            <span>车蜡</span>
+                            <span>车蜡</span>
+                        </div>
+                    </div>-->
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="common-footer">
+        <div>Copyright© 南星车管宝 2015-2016，All Rights Reserved</div>
+    </footer>
+    <script type="text/html" id='itemqr-resultitemlistTemp'>
+        <%for(var i = 0; i < data.length; i++ ){%>
+        <div class="itemqr-listbox">
+            <div class="itemqr-listtitle common-orange"><%=data[i].catDesc%></div>
+            <div class="itemqr-listitems" data-catid="<%=data[i].catId%>">
+            </div>
+        </div>
+        <%}%>
+    </script>
+</body>
+<script type="text/javascript" src="../js/common/jquery.min.js"></script>
+<script type="text/javascript" src="../js/common/underscore-min.js"></script>
+
+<script type="text/javascript" src="../js/common/common.js"></script>
+<script type="text/javascript" src="../js/store/itemqr.js"></script>
+</html>

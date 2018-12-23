@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
+    <title>南星车管宝-填写定件</title>
+    <link href="../css/common/common.css" rel="stylesheet" />
+    <link href="../css/index/itemorder.css" rel="stylesheet" />
+</head>
+
+<body class="common-bg-lightyellow">
+    <header>
+        <div class="common-loginbar common-bg-lightgray">
+            <div>
+                <div class="common-loginbtn common-darkgray">登录</div>
+            </div>
+        </div>
+        <div class="common-logobar common-bg-white">
+            <div>
+                <img class="common-logo" src="../images/common/logo-top.png" />
+            </div>
+        </div>
+        <div class="common-navbar common-bg-orange">
+            <div>
+                <ul class="common-navlist">
+                    <li class="common-navitem common-white common-active common-navitem-index">首页</li>
+                    <li class="common-navitem common-white">资讯</li>
+                    <li class="common-navitem common-white common-navitem-pj" >配件商</li>
+                    <li class="common-navitem common-floatright common-white">个人中心</li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <div class="common-bodyer common-bg-lightgray">
+        <div>
+            <!--查询页面-->
+            <div class="itemorder-box clearfix common-bg-white">
+                <div class="itemorder-item">
+                    <div class="itemorder-itembar">
+                        <span>我要定件</span>
+                    </div>    
+                    <div class="itemorder-itembox">
+                        <div class="clearfix common-bg-white itemorder-itemcar">
+                            <!-- <div class="itemorder-resultbar">
+                                <span class="common-white">品牌车型</span><span class="common-white">年款</span><span class="common-white">排量</span><span class="common-white">发动机号</span><span class="common-white">备注</span>
+                            </div>
+                            <div class="itemorder-resultext">
+                                <span class="">丰田威驰</span><span class="">2015</span><span class="">2.0</span><span class="">CUJ</span><span class="">备注备注备注备注备</span>
+                            </div>
+                            <div class="itemorder-resulimgbar">
+                                <img src="../images/common/car.png" alt="">
+                                <img src="../images/common/car.png" alt="">
+                                <img src="../images/common/car.png" alt="">
+                            </div>
+                            <div class="itemorder-resulbtnbar">
+                                <div class="">车牌号</div>
+                                <div class="common-darkgray common-bg-lightgray">保存</div>
+                            </div> -->
+                        </div>                    
+                        <div class="itemorder-itemtable">
+                            <div class="itemorder-itemtabletitle">
+                                <div class="common-bg-lightgray"><span class="common-red">*</span>名称</div><div class="common-bg-lightgray"><span class="common-red">*</span>规格</div><div class="common-bg-lightgray"><span class="common-red">*</span>产地</div><div class="common-bg-lightgray"><span class="common-red">*</span>数量 <input type="checkbox" class="itemorder-itemnumcheckall"/><label>全选</label></div>
+                            </div>
+                            <!--<div class="itemorder-itemtableline">
+                                <div>刹车皮</div><div>丰田</div><div>德国</div><div><div class="itemorder-itemnumbar"><div class="itemorder-itemnummin">-</div> <input value="1" /> <div class="itemorder-itemnumadd">+</div>
+                                </div><input type="checkbox"/></div>
+                            </div>
+                            <div class="itemorder-itemtableline">
+                                <div>刹车皮</div><div>丰田</div><div>德国</div><div><div class="itemorder-itemnumbar"><div class="itemorder-itemnummin">-</div> <input value="1" /> <div class="itemorder-itemnumadd">+</div>
+                                </div><input type="checkbox"/></div>
+                            </div>-->
+                            <div class="itemorder-itemtablemore">
+                                +添加更多
+                            </div>
+                        </div>
+                        <div class="itemorder-itembtnbar">
+                            <div class="common-bg-orange common-white itemorder-itemadd itemorder-itemorder">确定添加</div>
+                            <div class="common-bg-lightgray itemorder-itemdel">删除配件</div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="common-footer">
+        <div>Copyright© 南星车管宝 2015-2016，All Rights Reserved</div>
+    </footer>
+    <script type="text/html" id='itemorder-resultitemlistTemp'>
+        <div class="itemorder-itemtableline">
+            <div><input class="itemorder-itemDesc" /></div><div><input class="itemorder-spec" /></div><div><input class="itemorder-prod" /></div><div><div class="itemorder-itemnumbar"><div class="itemorder-itemnummin">-</div><input value="1" class="itemorder-itemnum" /><div class="itemorder-itemnumadd common-orange">+</div>
+            </div><span class="common-uncheck itemorder-itemnumcheckicon"></span><nput type="checkbox" class="itemorder-itemnumcheck hidden"/></div>
+        </div>
+    </script>
+    <script type="text/html" id='itemorder-itemcarTemp'>
+        <div class="itemorder-resultbar">
+            <span class="common-white">品牌车型</span><span class="common-white">年款</span><span class="common-white">排量</span><span class="common-white">发动机号</span><span class="common-white">备注</span>
+        </div>
+        <div class="itemorder-resultext">
+            <span class=""><%=data.brand%><%=data.catDesc%></span><span class=""><%=data.modelYear%></span><span class=""><%=data.output%></span><span class=""><%=data.engineNo%></span><span class=""><%=data.remarks%></span>
+        </div>
+        <div class="itemorder-resulimgbar">
+            <% var imgs = data.imageUrl ? data.imageUrl.split(",") : [];
+                    for(var k = 0; k < imgs.length; k++){ %>
+            <img src="<%=Config().getImgUrl2+imgs[k]%>" alt="">
+            <%}%>
+        </div>
+        <div class="itemorder-resulbtnbar">
+            <div class="common-white common-bg-lightgray"><input class="common-bg-lightgray" placeholder="车牌号" value="<%=data.license%>"></div>
+            <div class="common-darkgray common-bg-lightgray" data-id="<%=data.id%>">保存</div>
+        </div>
+    </script>
+</body>
+<script type="text/javascript" src="../js/common/jquery.min.js"></script>
+<script type="text/javascript" src="../js/common/underscore-min.js"></script>
+
+<script type="text/javascript" src="../js/common/common.js"></script>
+<script type="text/javascript" src="../js/index/itemorder.js"></script>
+</html>

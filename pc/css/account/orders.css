@@ -1,0 +1,186 @@
+.account-btnbar{
+    width: auto;
+}
+.orders-box{
+    width: 100%;
+    margin: 10px auto 30px;
+}
+.orders-box>div{ 
+    margin-bottom: 20px; 
+}
+.orders-resultbar {
+    width: 100%;
+    height: 40px;
+    background: #f46f70;
+}
+
+
+.orders-resultbar>span {
+    display: inline-block;
+    line-height: 40px;
+    width: 20%;
+    text-align: center;
+}
+
+.orders-resultext {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.orders-resultext>span {
+    display: inline-block;
+    line-height: 30px;
+    width: 20%;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.orders-resulbtnbar>div {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-left: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+.orders-resulbtnbar>div>input{
+    border: none;
+}
+.orders-resultitembar {
+    width: 100%;
+    height: 30px;
+    background: #b3b3b3;
+}
+
+.orders-resultitembar>span {
+    display: inline-block;
+    line-height: 30px;
+    width: 20%;
+    text-align: center;
+}
+
+.orders-resultitemlist {
+    width: 100%;
+}
+
+.orders-resultitemlist ul {
+    width: 100%;
+    padding: 0 5px;
+}
+
+.orders-resultitemlist li {
+    width: 100%;
+    list-style: none;
+    border-bottom: 1px solid #b3b3b3;
+}
+
+.orders-resultitemdetail {
+    height: 85px;
+    position: relative;
+}
+
+.orders-resultitemdetail img {
+    height: 75px;
+    width: 75px;
+    position: absolute;
+    top: 0;
+    left: 10px;
+}
+
+.orders-resultitemtime {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+.orders-resultnumbar {
+    position: absolute;
+    bottom: 38px;
+    right: 12px;
+}
+
+.orders-resultnumbar>span {
+    line-height: 30px;
+}
+
+.orders-resultnumbar>div {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    font-size: 22px;
+    border: 1px solid #b3b3b3;
+    line-height: 30px;
+    cursor: pointer;
+}
+
+.orders-resultnumbar>input {
+    line-height: 30px;
+    width: 50px;
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
+    padding-top: 8px;
+}
+
+.orders-check {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    background: url('../../images/orders/checked.png') no-repeat 50% 100%;
+}
+.orders-resultitembtn>div{
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin: 30px;
+    margin-left: 56px;
+    cursor: pointer
+}
+
+
+.orders-resulimgbar img{
+    width: 75px;
+    height: 75px;
+}
+/*---------------------------*/
+.orders-resulimgbar{
+    height: 79px;
+}
+
+.orders-resulbtnbar{
+    width: 50%;
+    min-width: 300px;
+    float:  right;
+    margin-top: 60px;
+    text-align: right;
+    padding-right: 20px;
+}
+.orders-resulimgbar{
+    width: 50%;
+    min-width: 300px;
+    padding-left: 20px;
+    /*float: left;*/
+}
+.fr{
+    float: right;
+}
+.fl{
+    float: left;
+}
+.deleteBox{
+    display: block;
+    float: left;
+}
+.deleteBox>div{
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+.orders-resultstore{
+    text-indent: 20px;
+}

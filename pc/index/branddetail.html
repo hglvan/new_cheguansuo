@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
+    <title>南星车管宝-品牌车型-年款-车型详情</title>
+    <link href="../css/common/swiper.min.css" rel="stylesheet" />
+    <link href="../css/common/common.css" rel="stylesheet" />
+    <link href="../css/index/branddetail.css" rel="stylesheet" />
+</head>
+<style>
+.swiper-slide{ overflow: hidden; height: 300px;}
+.swiper-slide img{ width: 100%; height: auto; }
+</style>
+<body class="common-bg-lightyellow">
+    <header>
+        <div class="common-loginbar common-bg-lightgray">
+            <div>
+                <div class="common-loginbtn common-darkgray">登录</div>
+            </div>
+        </div>
+        <div class="common-logobar common-bg-white">
+            <div>
+                <img class="common-logo" src="../images/common/logo-top.png" />
+            </div>
+        </div>
+        <div class="common-navbar common-bg-orange">
+            <div>
+                <ul class="common-navlist">
+                    <li class="common-navitem common-white common-active common-navitem-index">首页</li>
+                    <li class="common-navitem common-white">资讯</li>
+                    <li class="common-navitem common-white common-navitem-pj" >配件商</li>
+                    <li class="common-navitem common-floatright common-white">个人中心</li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <div class="common-bodyer common-bg-lightgray">
+        <div>
+            <!--查询页面-->
+            <div class="branddetail-box clearfix common-bg-white">
+                <!-- <div class="branddetail-position">首页>奥迪Q3 2016新款</div>
+                <div class="branddetail-detail">
+                    <img src="../images/common/car.png" alt="">
+                    <div class="branddetail-detailbox">
+                        <div class="branddetail-detailtitle">奥迪Q3 2016新款</div>
+                        <div class="common-darkgray">参数规格</div>
+                        <div><span class="common-darkgray">年款：</span><span>2016款</span></div>
+                        <div><span class="common-darkgray">排量：</span><span>2.0T</span></div>
+                        <div><span class="common-darkgray">发动机号：</span><span>2017年2月26日</span></div>
+                        <div><span class="common-darkgray">备注：</span><span>奥迪最新款车型</span></div>
+                        <div class="branddetail-btn common-bg-orange common-white">添加车型</div>
+                    </div>
+                </div> -->
+            </div>
+        </div>
+    </div>
+    <footer class="common-footer">
+        <div>Copyright© 南星车管宝 2015-2016，All Rights Reserved</div>
+    </footer>
+    <script type="text/html" id='branddetail-resultitemlistTemp'>
+        <div class="branddetail-position">首页><%=data.typeCatView.brand%> <%=data.typeCatView.catDesc%></div>
+        <div class="branddetail-detail">
+            <!-- <img src="<%=Config().getImgUrl+data.typeCatView.imageUrl%>" alt=""> -->
+            <div class="swiper-container">
+                <% 
+                var imgs = data.typeCatView.imageUrl&&data.typeCatView.imageUrl.split(",");
+                %>
+                <div class="swiper-wrapper">
+                <% if(imgs){ %>
+
+                    <%for(var i = 0; i < imgs.length; i ++){%>
+                    <div class="swiper-slide">
+                    <!-- <img src="<%=Config().getImgUrl+imgs[i]%>" alt=""> -->
+                    <img src="<%=(imgs[i].indexOf('_dkm_')>-1)?Config().getImgUrl+'/catpic/'+imgs[i]+'.gif':Config().getImgUrl2+'/catpic/'+imgs[i]+'.gif'%>"  alt="">
+                    </div>
+                    <%}%>
+                    <%}%>
+                
+                </div>
+                <!-- 如果需要分页器 -->
+                <div class="swiper-pagination"></div>             
+            </div>
+            <div class="branddetail-detailbox">
+                <div class="branddetail-detailtitle"><%=data.typeCatView.brand%> <%=data.typeCatView.catDesc%></div>
+                <div class="common-darkgray">参数规格</div>
+                <div><span class="common-darkgray">年款：</span><span><%=data.typeCatView.modelYear%></span></div>
+                <div><span class="common-darkgray">排量：</span><span><%=data.typeCatView.dispment%></span></div>
+                <div><span class="common-darkgray">发动机号：</span><span><%=data.typeCatView.engineNo%></span></div>
+                <div><span class="common-darkgray">备注：</span><span><%=data.typeCatView.remark1%></span></div>
+                <div class="branddetail-btn common-bg-orange common-white" data-id="<%=data.typeCatView.catId%>">添加车型</div>
+            </div>
+        </div>
+    </script>
+</body>
+<script type="text/javascript" src="../js/common/jquery.min.js"></script>
+<script type="text/javascript" src="../js/common/underscore-min.js"></script>
+<script type="text/javascript" src="../js/common/swiper.min.js"></script>
+
+<script type="text/javascript" src="../js/common/common.js"></script>
+<script type="text/javascript" src="../js/index/branddetail.js"></script>
+</html>

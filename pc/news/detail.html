@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
+    <title>南星车管宝-资讯详情</title>
+    <link href="../css/common/common.css" rel="stylesheet" />
+    <link href="../css/news/detail.css" rel="stylesheet" />
+</head>
+
+<body class="common-bg-lightyellow">
+    <header>
+        <div class="common-loginbar common-bg-lightgray">
+            <div>
+                <div class="common-loginbtn common-darkgray">登录</div>
+            </div>
+        </div>
+        <div class="common-logobar common-bg-white">
+            <div>
+                <img class="common-logo" src="../images/common/logo-top.png" />
+            </div>
+        </div>
+        <div class="common-navbar common-bg-orange">
+            <div>
+                <ul class="common-navlist">
+                    <li class="common-navitem common-white common-navitem-index">首页</li>
+                    <li class="common-navitem common-white  common-active">资讯</li>
+                    <li class="common-navitem common-white common-navitem-pj">配件商</li>
+                    <li class="common-navitem common-floatright common-white">个人中心</li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <div class="common-bodyer common-bg-lightgray">
+        <div>
+            <!--咨询列表-->
+            <div class="detail-box clearfix">
+                <!--<div class="detail-position">您的位置 > 首页 > 资讯 > 前置保险杠！近期将有大优惠</div>
+                <div class="detail-content">
+                    <div class="detail-contenttitle">前置保险杠！近期将有大优惠</div>
+                    <div class="detail-contentdetail">
+                        <img src="../images/common/car.png" alt="">
+                        <p>前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠</p>
+                    </div>
+                    <div class="detail-contenttime">
+                        2017-02-26 15:25:36
+                    </div>
+                </div>
+                
+                <div class="detail-pagesbar">
+                    <div class="">上篇：前置保险杠！近期将有大优惠</div>
+                    <div class="">下篇：前置保险杠！近期将有大优惠</div>
+                </div>-->
+            </div>
+        </div>
+    </div>
+    <footer class="common-footer">
+        <div>Copyright© 南星车管宝 2015-2016，All Rights Reserved</div>
+    </footer>
+    <script type="text/html" id='detail-boxTemp'>
+        <div class="detail-position">您的位置 > 首页 > 资讯 > <%=data.data&&data.data.title%></div>
+        <div class="detail-content">
+            <div class="detail-contenttitle"><%=data.data&&data.data.title%></div>
+            <div class="detail-contentdetail">
+                <%=data.data&&data.data.content%>
+            </div>
+            <div class="detail-contenttime">
+                <%=formatDate(data.data&&data.data.createTime)%>
+            </div>
+        </div>
+        
+        <div class="detail-pagesbar">
+        <%if(data.up){ %>
+            <div class="detail-pagesbar-bt" data-id="<%=data.up&&data.up.id%>" ><a href="javascript:;" >上篇：<%=data.up&&data.up.title%></a></div>
+        <%}%>
+        <%if(data.next){ %>
+            <div class="detail-pagesbar-bt"  data-id="<%=data.next&&data.next.id%>"><a href="javascript:;">下篇：<%=data.next&&data.next.title%></a></div>
+        <%}%>
+
+        </div>
+    </script>
+</body>
+<script type="text/javascript" src="../js/common/jquery.min.js"></script>
+<script type="text/javascript" src="../js/common/underscore-min.js"></script>
+
+<script type="text/javascript" src="../js/common/common.js"></script>
+<script type="text/javascript" src="../js/news/detail.js"></script>
+</html>

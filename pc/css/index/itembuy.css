@@ -1,0 +1,64 @@
+.itembuy-box{
+    width: 100%;
+    margin: 10px auto;
+    padding: 10px 20px;
+}
+
+.itembuy-box>div{
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.itembuy-qrbar>span, .itembuy-itembar>span{
+    font-size: 20px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgb(231, 122, 19);
+}
+
+.itembuy-qrbox{
+    position: relative;
+}
+
+.itembuy-qrbox>div{
+    padding: 0px 15px;
+    line-height: 35px;
+    height: 35px;
+    margin-top: 10px;
+    float: left;
+    border-radius: 2px;
+}
+.itembuy-qrbox>input{
+    margin-top: 10px;
+    float: left;
+    line-height: 35px;
+    height: 35px;
+    border: none;
+    background: #ededed;
+    padding: 0 10px;
+    border-radius: 2px;
+    width: 120px;
+}
+
+.itembuy-itemboxtitle{
+    margin-top: 20px;
+}
+.itembuy-itemboxtitle>span{
+    display: inline-block;
+    width: 11%;
+    padding: 10px 2px;
+}
+.itembuy-itemboxline{
+    border-bottom: 1px solid rgb(231, 231, 231);
+}
+.itembuy-itemboxline>span{
+    display: inline-block;
+    width: 11%;   
+    padding: 10px 2px;
+}
+.itembuy-itemboxline .itembuy-itemboxaddbtn{
+    cursor: pointer;
+}
+
+.itembuy-qrbtn{
+    margin-left: 72px;
+}

@@ -1,0 +1,29 @@
+.detail-box{
+    width: 90%;
+    margin: 20px auto;
+    border-top: 1px solid #b3b3b3;
+    padding: 10px;
+}
+.detail-contenttitle{
+    font-size: 18px;
+    font-weight: bold;
+    padding: 2px;
+    margin: 20px 0; 
+}
+.detail-contentdetail, .detail-pagesbar{
+    margin: 20px 0;
+}
+.detail-pagesbar a{
+    text-decoration:none;
+    color: #333;
+}
+.detail-contentdetail img{
+    width: 100%;
+}
+.detail-contentdetail p{
+    width: 100%
+}
+.detail-contenttime{
+    margin: 20px 0; 
+    text-align: right
+}

@@ -1,0 +1,50 @@
+.branddetail-box{
+    width: 100%;
+    margin: 10px auto;
+    border-top: 2px solid rgb(231, 122, 19);
+}
+.branddetail-position{
+    width: 80%;
+    margin: 10px auto;
+}
+.branddetail-detail{
+    width: 80%;
+    margin: 10px auto;
+    position: relative;
+    height: 600px;
+}
+
+.branddetail-detail>img{
+    width: 450px;
+    height: 300px;
+}
+.branddetail-detailbox{
+    width: 300px;
+    height: 300px;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+.branddetail-detailbox>div{
+    margin-bottom: 10px;
+}
+.branddetail-detailtitle{
+    font-size: 20px;
+    font-weight: bold;
+    padding: 10px 0;
+    border-bottom: 1px solid #cccccc;
+}
+
+.branddetail-btn{
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-top: 20px;
+    margin-right: 5px;
+    cursor: pointer;
+}
+.swiper-container{
+    width: 450px;
+    height: 300px;
+    margin: 0;
+}

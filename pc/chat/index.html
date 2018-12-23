@@ -1,0 +1,139 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0" />
+    <title>IM-DEMO</title>
+    <!-- HTML5 element  -->
+    <script src="./demo/javascript/dist/browser-polyfill.min.js"></script>
+</head>
+<style type="text/css">
+    .webim-leftbar {
+        /* border: 1px solid #b3b3b3!important; */
+    }
+    #groups,#chatrooms{
+        display: none;
+    }
+    .index-wechat {
+        border: 2px solid #b3b3b3!important;
+    }
+    
+    .webim-chat {
+        border-top: 1px solid #b3b3b3!important;
+        border-bottom: 1px solid #b3b3b3!important;
+    }
+    
+    .webim-contact-wrapper {
+        border: 1px solid #b3b3b3!important;
+    }
+    
+    .webim-contact-item>span,
+    .webim-contact-item .webim-contact-username {
+        color: black!important;
+    }
+    
+    .webim-contact-wrapper {
+        width: 100px!important;
+    }
+    
+    .webim-avatar-icon {
+        display: none;
+    }
+    
+    .webim-contact-item {
+        height: 40px!important;
+    }
+    
+    .webim-contact-username {
+        width: 100%!important;
+    }
+    /*#strangers{
+        display: none;
+    }
+    #chatrooms{
+        display: none;
+    }*/
+    
+    .webim-chatwindow {
+        width: calc(100% - 154px)!important;
+    }
+    
+    .webim-operations-icon {
+        display: block!important;
+    }
+    
+    .webim-logo {
+        display: none;
+    }
+    
+    .webim-sign {
+        display: none;
+    }
+    
+    .webim-operations li:nth-child(2) {
+        display: none;
+    }
+    
+    .webim-operations li:nth-child(3) {
+        display: none;
+    }
+    
+    .webim-operations li:nth-child(4) {
+        display: none;
+    }
+</style>
+
+<body style="
+    overflow-x: auto;
+    overflow-y: auto;
+
+">
+    <section id='main' class='w100'>
+        <article id='demo'></article>
+        <article id='components'></article>
+    </section>
+    <!--config-->
+    <script src="./demo/javascript/dist/webim.config.js"></script>
+    <script>
+        <!--A JavaScript library for XMPP over Websocket-->
+        document.write("<script src='./sdk/dist/strophe-1.2.8.min.js'><\/script>");
+    </script>
+    <!--sdk-->
+    <script src='./sdk/dist/websdk-1.4.8.js'></script>
+    <!--webrtc-->
+    <script>
+        if (WebIM.config.isWebRTC) {
+            document.write("<script src='./webrtc/dist/adapter.js'><\/script>");
+            document.write("<script src='./webrtc/dist/webrtc-1.4.8.js'><\/script>");
+        }
+        // clearCookie()
+        // function clearCookie(){ 
+        // var keys=document.cookie.match(/[^ =;]+(?=\=)/g); 
+        // if (keys) { 
+        //     for (var i = keys.length; i--;) 
+        //         document.cookie=keys[i]+'=0;expires=' + new Date( 0).toUTCString() 
+        //     } 
+        // }
+    </script>
+    <!--[if lte IE 9]>
+<script src="./demo/javascript/dist/swfupload/swfupload.min.js"></script>
+<![endif]-->
+    <!--demo javascript-->
+    <script src="./demo/javascript/dist/demo-1.4.8.js"></script>
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).on('click', '.webim-contact-username', function(e) {
+            var name = $(this).html();
+            var url = window.parent.document.URL
+            if (url.indexOf('/store/') > -1) {
+                window.parent.getIndexList(name)
+            } else {
+                window.parent.getIndexList(name)
+            }
+        })
+    </script>
+</body>
+
+</html>

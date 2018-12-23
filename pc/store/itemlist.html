@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
+    <title>南星车管宝-配件列表</title>
+    <link href="../css/common/common.css" rel="stylesheet" />
+    <link href="../css/store/itemlist.css" rel="stylesheet" />
+</head>
+
+<body class="common-bg-lightyellow">
+    <header>
+        <div class="common-loginbar common-bg-lightgray">
+            <div>
+                <div class="common-loginbtn common-darkgray">登录</div>
+            </div>
+        </div>
+        <div class="common-logobar common-bg-white">
+            <div>
+                <img class="common-logo" src="../images/common/logo-top.png" />
+            </div>
+        </div>
+        <div class="common-navbar common-bg-orange">
+            <div>
+                <ul class="common-navlist">
+                    <li class="common-navitem common-white common-navitem-index">首页</li>
+                    <li class="common-navitem common-white">资讯</li>
+                    <li class="common-navitem common-white common-active  common-navitem-pj" >配件商</li>
+                    <li class="common-navitem common-floatright common-white">个人中心</li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <div class="common-bodyer common-bg-lightgray">
+        <div>
+            <!--查询页面-->
+            <div class="itemlist-box clearfix common-bg-white">
+                <!--<div class="itemlist-position">首页>奥迪Q3 2016新款</div>
+                <div class="itemlist-detail">
+                    <div class="itemlist-detail">
+                        <div class="clearfix common-bg-white">
+                        <div class="itemlist-resultitembar common-bg-lightgray">
+                            <span class=""> </span><span class="">名称</span><span class="">车型</span><span
+                                class="">规格</span><span class="">产地</span><span class="">品牌</span><span class="">价格</span><span class="">建议价</span>
+                        </div>
+                        <div class="itemlist-resultitemlist">
+                            <ul>
+                                <li>
+                                    <div class="itemlist-resultext">
+                                        <span class="">
+                                        <img src="../images/common/car.png" alt=""></span><span class="">丰田</span><span class="">湖南</span><span class="">￥500</span><span
+                                            class="">待退货</span><span class="">状态</span><span class="">状态</span><span class="">状态</span>
+                                    </div>
+                                    <div class="itemlist-resultitemdetail">
+                                        <div class="itemlist-resultitemsec common-darkgray">备注：</div>
+                                        <div class="itemlist-resultitembtn common-white common-bg-orange">添加</div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        </div>
+                    </div>
+                </div>-->
+                
+            </div>
+        </div>
+    </div>
+    <footer class="common-footer">
+        <div>Copyright© 南星车管宝 2015-2016，All Rights Reserved</div>
+    </footer>
+    <script type="text/html" id='itemlist-resultitemlistTemp'>
+        <div class="itemlist-position">首页><%=decodeURIComponent(catName)%></div>
+                <div class="itemlist-detail">
+                    <div class="itemlist-detail">
+                        <div class="clearfix common-bg-white">
+                        <div class="itemlist-resultitembar common-bg-lightgray">
+                            <span class=""> </span><span class="">名称</span><span class="">车型</span><span
+                                class="">规格</span><span class="">产地</span><span class="">品牌</span><span class="">价格</span><span class="">建议价</span>
+                        </div>
+                        <div class="itemlist-resultitemlist">
+                            <ul>
+                                <% var list = data.stockViews;
+                                for(var i = 0; i< list.length; i++){
+                                %>
+                                <li>
+                                    <div class="itemlist-resultext">
+                                        <span class="itemlistImageUrl">
+                                                <a href="./itemdetail.html?itemCode=<%=list[i].itemCode%>"> 
+                                        <img src="<%=(list[i].imageUrl!=null)?Config().getImgUrl2+list[i].imageUrl:Config().getImgUrl2+list[i].imgpath %>" alt=""></a>
+                                    </span><span class=""><%=list[i].itemDesc%></span><span class=""><%=list[i].catDesc%></span><span class=""><%=list[i].spec%></span><span
+                                            class=""><%=list[i].prod%></span><span class=""><%=list[i].brand%></span><span class="">￥<%=list[i].imtPrice%></span><span class="">￥<%=list[i].retPrice%></span>
+                                    </div>
+                                    <div class="itemlist-resultitemdetail">
+                                        <div class="itemlist-resultitemsec common-darkgray">备注：<%=list[i].itemDesc%></div>
+                                        <div class="itemlist-resultitembtn common-white common-bg-orange" data-cid="<%=list[i].itemCode%>"  data-itemcode="<%=list[i].itemCode%>" data-wh="<%=list[i].whLoc%>"  data-searchId="<%=list[i].searchId%>" data-searchItemId="<%=list[i].searchItemId%>">添加</div>
+                                    </div>
+                                </li>
+                                <%}%>
+                            </ul>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="itemlist-resultitemorder common-white common-bg-orange">订急件</div>
+                <div class="itemlist-pagesbar">
+                    <!--上一页 1 下一页-->
+                </div>
+    </script>
+    <script type="text/html" id='itemlist-pagesbarTemp'>
+        <%
+            var pre = page - 2, next = page + 2;
+            if(page - 2 < 1){
+                pre = 1;
+            }
+            if(page + 2 > total){
+                next = total;
+            }
+        %>
+        <span data-page="<%=page == 1 ? 1 : page-1%>">上一页</span>
+        <%if(pre != 1){%>
+            <span data-page="1" class="common-blue">1</span> ... 
+        <%}%>
+        <%for(var i = pre; i < next + 1; i++){%>
+            <span data-page="<%=i%>" <%=i==page?'':'class="common-blue"'%>><%=i%></span>
+        <%}%>
+        <%if(next != total){%>
+             ... <span data-page="<%=total%>" class="common-blue"><%=total%></span>
+        <%}%>
+        <span data-page="<%=page == total ? total : page+1%>">下一页</span>
+    </script>
+</body>
+<script type="text/javascript" src="../js/common/jquery.min.js"></script>
+<script type="text/javascript" src="../js/common/underscore-min.js"></script>
+
+<script type="text/javascript" src="../js/common/common.js"></script>
+<script type="text/javascript" src="../js/store/itemlist.js"></script>
+</html>

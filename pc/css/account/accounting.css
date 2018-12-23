@@ -1,0 +1,120 @@
+.accounting-resultstore{
+    border-bottom: 1px solid #b3b3b3;
+    border-left: 1px solid #b3b3b3;
+    border-right: 1px solid #b3b3b3;
+    padding: 10px;
+}
+.common-bg-whit{
+   
+}
+.account-btnbar{
+    width: auto;
+}
+.accounting-box{
+    width: 100%;
+    margin: 10px auto 30px;
+}
+.accounting-box>div{
+    padding: 20px;
+    margin-bottom: 20px;   
+}
+
+.accounting-resultitembar {
+    width: 100%;
+    height: 30px;
+}
+
+.accounting-resultitembar>span {
+    display: inline-block;
+    line-height: 30px;
+    width: 20%;
+    text-align: center;
+}
+
+.accounting-resultitemlist {
+    width: 100%;
+}
+
+.accounting-resultitemlist ul {
+    width: 100%;
+}
+
+.accounting-resultitemlist li {
+    width: 100%;
+    list-style: none;
+    border-top:1px solid #b3b3b3;
+    border-bottom:1px solid #b3b3b3;
+    border-left:1px solid #b3b3b3;
+    border-right:1px solid #b3b3b3;
+
+}
+.accounting-resultext span{
+    display: inline-block;
+    line-height: 50px;
+    width: 20%;
+    text-align: center;
+}
+
+.accounting-resultitemdetail {
+    height: 85px;
+    position: relative;
+}
+
+.accounting-resultitemdetail img {
+    height: 75px;
+    width: 75px;
+    position: absolute;
+    top: 0;
+    left: 10px;
+}
+
+.accounting-resultitemtime {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+.accounting-resultnumbar {
+    position: absolute;
+    bottom: 38px;
+    right: 12px;
+}
+
+.accounting-resultnumbar>span {
+    line-height: 30px;
+}
+
+.accounting-resultnumbar>div {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    font-size: 22px;
+    border: 1px solid #b3b3b3;
+    line-height: 30px;
+    cursor: pointer;
+}
+
+.accounting-resultnumbar>input {
+    line-height: 30px;
+    width: 50px;
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
+    padding-top: 8px;
+}
+
+.accounting-check {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    background: url('../../images/index/checked.png') no-repeat 50% 100%;
+}
+.accounting-resultitembtn>div{
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin: 30px;
+    margin-left: 56px;
+    cursor: pointer
+}

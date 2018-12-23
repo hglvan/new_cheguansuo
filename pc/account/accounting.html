@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
+    <title>南星车管宝-账务处理</title>
+    <link href="../css/common/jcDate.css" rel="stylesheet" />
+    <link href="../css/common/common.css" rel="stylesheet" />
+    <link href="../css/account/accounting.css" rel="stylesheet" />
+</head>
+
+<body class="common-bg-lightyellow">
+    <header>
+        <div class="common-loginbar common-bg-lightgray">
+            <div>
+                <div class="common-loginbtn common-darkgray">登录</div>
+            </div>
+        </div>
+        <div class="common-logobar common-bg-white">
+            <div>
+                <img class="common-logo" src="../images/common/logo-top.png" />
+            </div>
+        </div>
+        <div class="common-navbar common-bg-orange">
+            <div>
+                <ul class="common-navlist">
+                    <li class="common-navitem common-white common-navitem-index">首页</li>
+                    <li class="common-navitem common-white">资讯</li>
+                    <li class="common-navitem common-white common-navitem-pj" >配件商</li>
+                    <li class="common-navitem common-floatright common-white common-active">个人中心</li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <div class="common-bodyer common-bg-lightgray">
+        <div>
+            <!--个人信息-查询-->
+            <div class="account-box clearfix common-bg-white">
+                <div class="account-tabbar">
+                    <ul>
+                        <li>我的订单</li>
+                        <li class="account-active">财务处理</li>
+                        <li>退货处理</li>
+                        <li>退货状态</li>
+                    </ul>
+                </div>
+                <div class="account-qrbox">
+                    <div class="account-qrstore">
+                        <span>配件商</span>
+                        <input type="text" class="common-bg-lightgray account-qrstoreinput">
+                    </div>
+                    <div class="account-qrdate">
+                        <span>日期</span>
+                        <input type="text" class="common-bg-lightgray account-startdate">
+                        <span>至</span>
+                        <input type="text" class="common-bg-lightgray account-enddate">
+                    </div>
+                    <div class="account-qrcar">
+                        <span>车牌</span>
+                        <input type="text" class="common-bg-lightgray account-qrcarinput">
+                    </div>
+                    <div class="account-qrname">
+                        <span>名称</span>
+                        <input type="text" class="common-bg-lightgray account-qrnameinput">
+                    </div>
+                    <div class="account-btnbar">
+                        <div class="common-bg-orange common-white" id="statusQr">查询</div>
+                    </div>
+                </div>
+            </div>
+            <!--退货状态-->
+            <div class="accounting-box clearfix">
+                <!--<div class="clearfix common-bg-white">
+                <div class="accounting-resultitembar common-bg-lightgray">
+                    <span class="">名称</span><span class="">规格</span><span class="">产地</span><span
+                        class="">价格</span><span class="">状态</span>
+                </div>
+                <div class="accounting-resultitemlist">
+                    <ul>
+                        <li>
+                            <div class="accounting-resultext">
+                                <span class="">保险杠</span><span class="">丰田</span><span class="">湖南</span><span class="">￥500</span><span
+                                    class="">待退货</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                </div>-->
+            </div>
+        </div>
+    </div>
+    <footer class="common-footer">
+        <div>Copyright© 南星车管宝 2015-2016，All Rights Reserved</div>
+    </footer>
+    <script type="text/html" id='accounting-resultitemlistTemp'>
+    <% var stores = data.suplierInfoViews;
+        for(var j = 0; j < stores.length; j++){ 
+            var list = stores[j].stockViews;
+            %>
+        <div class="clearfix common-bg-white">
+                <div class="accounting-resultitembar common-bg-lightgray">
+                    <span class="">名称</span><span class="">规格</span><span class="">产地</span><span
+                        class="">价格</span><span class="">数量</span>
+                </div>
+                <div class="accounting-resultitemlist">
+                    <ul>
+                        <% var totalAmt = 0;
+                        var totalNum = 0;
+                        for(var i = 0; i < list.length; i++){ 
+                        totalAmt += list[i].imtPrice;
+                        totalNum += list[i].amount;
+                        %>
+                        <li>
+                            <div class="accounting-resultext">
+                                <span class=""><%=list[i].itemDesc%></span><span class=""><%=list[i].spec%></span><span class=""><%=list[i].prod%></span><span class="">￥<%=list[i].imtPrice%></span><span
+                                    class=""><%=list[i].amount%></span>
+                            </div>
+                        </li>
+                        <%}%>
+                    </ul>
+                </div>
+                <div class="accounting-resultstore">
+            <div><%=stores[j].storeName%><span style="float: right">共<%=totalNum%>件商品</span></div>
+            <div><%=formatDate(stores[j].createTimeStart, 1)%> 至 <%=formatDate(stores[j].createTimeEnd, 1)%>  售后电话：<%=stores[j].contact%><span style="float: right">总金额：￥<%=totalAmt%></span></div>
+        </div> 
+                </div>
+                <%}%>
+    </script>
+</body>
+<script type="text/javascript" src="../js/common/jquery.min.js"></script>
+<script type="text/javascript" src="../js/common/underscore-min.js"></script>
+<script type="text/javascript" src="../js/common/jQuery-jcDate.js"></script>
+
+<script type="text/javascript" src="../js/common/common.js"></script>
+<script type="text/javascript" src="../js/account/accounting.js"></script>
+</html>

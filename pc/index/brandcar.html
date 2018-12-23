@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
+    <title>南星车管宝-品牌车型</title>
+    <link href="../css/common/common.css" rel="stylesheet" />
+    <link href="../css/index/brandcar.css" rel="stylesheet" />
+</head>
+
+<body class="common-bg-lightyellow">
+    <header>
+        <div class="common-loginbar common-bg-lightgray">
+            <div>
+                <div class="common-loginbtn common-darkgray">登录</div>
+            </div>
+        </div>
+        <div class="common-logobar common-bg-white">
+            <div>
+                <img class="common-logo" src="../images/common/logo-top.png" />
+            </div>
+        </div>
+        <div class="common-navbar common-bg-orange">
+            <div>
+                <ul class="common-navlist">
+                    <li class="common-navitem common-white common-active common-navitem-index">首页</li>
+                    <li class="common-navitem common-white">资讯</li>
+                    <li class="common-navitem common-white common-navitem-pj" >配件商</li>
+                    <li class="common-navitem common-floatright common-white">个人中心</li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <div class="common-bodyer common-bg-lightgray">
+        <div>
+            <!--查询页面-->
+            <div class="brandcar-box clearfix common-bg-white">
+                <div class="brandcar-title">车型</div>
+                <div class="brandcar-list">
+                    <!--<div>
+                        <img src="../images/common/car.png" alt="">
+                        <div class="common-bg-lightgray">车型</div>
+                    </div>-->
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="common-footer">
+        <div>Copyright© 南星车管宝 2015-2016，All Rights Reserved</div>
+    </footer>
+    <script type="text/html" id='brandcar-resultitemlistTemp'>
+        <%for(var i = 0; i < data.typeCatViews.length; i++ ){%>
+        <div class="brandcar-listitem" data-id="<%=data.typeCatViews[i].catId%>">
+            <img src="http://59.33.84.235:8888/catpic/<%=data.typeCatViews[i].logo%>.bmp" alt="">
+            <div class="common-bg-lightgray brandcar-listitemname"><%=data.typeCatViews[i].catDesc%></div>
+        </div>
+        <%}%>
+    </script>
+</body>
+<script type="text/javascript" src="../js/common/jquery.min.js"></script>
+<script type="text/javascript" src="../js/common/underscore-min.js"></script>
+
+<script type="text/javascript" src="../js/common/common.js"></script>
+<script type="text/javascript" src="../js/index/brandcar.js"></script>
+</html>

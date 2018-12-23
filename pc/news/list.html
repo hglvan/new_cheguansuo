@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
+    <title>南星车管宝-资讯列表</title>
+    <link href="../css/common/common.css" rel="stylesheet" />
+    <link href="../css/news/list.css" rel="stylesheet" />
+</head>
+
+<body class="common-bg-lightyellow">
+    <header>
+        <div class="common-loginbar common-bg-lightgray">
+            <div>
+                <div class="common-loginbtn common-darkgray">登录</div>
+            </div>
+        </div>
+        <div class="common-logobar common-bg-white">
+            <div>
+                <img class="common-logo" src="../images/common/logo-top.png" />
+            </div>
+        </div>
+        <div class="common-navbar common-bg-orange">
+            <div>
+                <ul class="common-navlist">
+                    <li class="common-navitem common-white common-navitem-index">首页</li>
+                    <li class="common-navitem common-white  common-active">资讯</li>
+                    <li class="common-navitem common-white common-navitem-pj">配件商</li>
+                    <li class="common-navitem common-floatright common-white">个人中心</li>
+                    
+                </ul>
+            </div>
+        </div>
+    </header>
+    <div class="common-bodyer common-bg-lightgray">
+        <div>
+            <!--资讯列表-->
+            <div class="list-box clearfix">
+                <!--<ul>
+                    <li>
+                        <img src="../images/common/car.png" alt="">
+                        <div class="list-textbox">
+                            <div class="list-textboxtitle">前置保险杠！近期将有大优惠</div>
+                            <div class="list-textboxcontent">前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠前置保险杠！近期将有大优惠</div>
+                            <div class="list-textboxtime">2017-2-26 15:08:10</div>
+                        </div>
+                    </li>                   
+                </ul>-->
+            </div>
+            <div class="list-pagesbar">
+                <!--上一页 1 下一页-->
+            </div>
+        </div>
+    </div>
+    <footer class="common-footer">
+        <div>Copyright© 南星车管宝 2015-2016，All Rights Reserved</div>
+    </footer>
+    <script type="text/html" id='list-boxTemp'>
+        <ul>
+            <% for(var i = 0; i < data.length; i++){ %>
+            <li data-id="<%=data[i].id%>">
+                <img src="<%=Config().getImgUrl+data[i].imageUrl%>" alt="">
+                <div class="list-textbox">
+                    <div class="list-textboxtitle"><%=data[i].title%></div>
+                    <div class="list-textboxcontent"><%=data[i].subject%></div>
+                    <div class="list-textboxtime"><%=formatDate(data[i].createTime, 0)%></div>
+                </div>
+            </li>
+            <%}%>                   
+        </ul>
+    </script>
+    <script type="text/html" id='list-pagesbarTemp'>
+        <%
+            var pre = page - 2, next = page + 2;
+            if(page - 2 < 1){
+                pre = 1;
+            }
+            if(page + 2 > total){
+                next = total;
+            }
+        %>
+        <span data-page="<%=page == 1 ? 1 : page-1%>">上一页</span>
+        <%if(pre != 1){%>
+            <span data-page="1" class="common-blue">1</span> ... 
+        <%}%>
+        <%for(var i = pre; i < next + 1; i++){%>
+            <span data-page="<%=i%>" <%=i==page?'':'class="common-blue"'%>><%=i%></span>
+        <%}%>
+        <%if(next != total){%>
+             ... <span data-page="<%=total%>" class="common-blue"><%=total%></span>
+        <%}%>
+        <span data-page="<%=page == total ? total : page+1%>">下一页</span>
+    </script>
+</body>
+<script type="text/javascript" src="../js/common/jquery.min.js"></script>
+<script type="text/javascript" src="../js/common/underscore-min.js"></script>
+
+<script type="text/javascript" src="../js/common/common.js"></script>
+<script type="text/javascript" src="../js/news/list.js"></script>
+</html>

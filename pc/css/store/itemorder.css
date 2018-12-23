@@ -1,0 +1,138 @@
+.itemorder-box{
+    width: 100%;
+    margin: 10px auto;
+    padding: 10px 20px;
+}
+
+.itemorder-itembar>span{
+    font-size: 20px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgb(231, 122, 19);
+}
+.itemorder-itembox{
+    margin-left: 105px;
+    margin-top: 5px;
+}
+.itemorder-itembox>div{
+    width: 700px;
+}
+.itemorder-itembox>div:nth-child(1) {
+    margin-top: 20px;
+}
+.itemorder-itemtabletitle > div{
+    display: inline-block;
+    width: 20%;
+    padding: 3px;
+    border: 1px solid rgb(222, 222, 222);
+}
+.itemorder-itemtabletitle > div:nth-child(4) {
+    width: 40%
+}
+.itemorder-itemtabletitle > div:nth-child(4) > input {
+    margin-left: 40%;
+}
+.itemorder-itemnumbar>span {
+    line-height: 30px;
+}
+.itemorder-itemtableline > div{
+    display: inline-block;
+    width: 20%;
+    padding: 10px;
+    border: 1px solid rgb(222, 222, 222);
+}
+.itemorder-itemtableline > div:nth-child(4) {
+    width: 40%
+}
+.itemorder-itemnumbar{
+    display: inline-block;
+    width: 65%;
+}
+.itemorder-itemnumbar>div {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    font-size: 22px;
+    border: 1px solid #b3b3b3;
+    line-height: 30px;
+    cursor: pointer;
+}
+
+.itemorder-itemnumbar>input {
+    line-height: 30px;
+    width: 50px;
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
+    padding-top: 8px;
+}
+
+.itemorder-itemtablemore{   
+    padding: 10px;
+    text-align: center;
+    border: 1px solid rgb(222, 222, 222);
+}
+
+.itemorder-itembtnbar{
+   padding: 20px 0 40px 0; 
+}
+.itemorder-itembtnbar div{
+    float: right;
+    border-radius: 3px;
+    padding: 8px 25px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+.itemorder-resultbar {
+    width: 100%;
+    height: 40px;
+    background: #f46f70;
+}
+
+.itemorder-resultbar>span {
+    display: inline-block;
+    line-height: 40px;
+    width: 20%;
+    text-align: center;
+}
+
+.itemorder-resultext {
+    width: 100%;
+}
+
+.itemorder-resultext>span {
+    display: inline-block;
+    line-height: 30px;
+    width: 20%;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.itemorder-resulbtnbar{
+    text-align: right;
+}
+
+.itemorder-resulbtnbar>div {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-left: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+.itemorder-itemtableline > div > input{
+    width: 100%;
+    border: none;
+}
+.itemorder-itemtableline > div:nth-child(4) > input{
+    width: 10%
+}
+.itemorder-itemtableline > div {
+    line-height: 35px;
+}
+.itemorder-resulbtnbar>div>input{
+    border: none;
+}
+.itemorder-resulimgbar > img{
+    height: 90px;
+}

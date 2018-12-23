@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
+    <title>南星车管宝</title>
+    <link href="../css/common/common.css" rel="stylesheet" />
+    <link href="../css/store/index.css" rel="stylesheet" />
+</head>
+
+<body class="common-bg-lightyellow">
+    <header>
+        <div class="common-loginbar common-bg-lightgray">
+            <div>
+                <div class="common-loginbtn common-darkgray">登录</div>
+            </div>
+        </div>
+        <div class="common-logobar common-bg-white">
+            <div>
+                <img class="common-logo" src="../images/common/logo-top.png" />
+            </div>
+        </div>
+        <div class="common-navbar common-bg-orange">
+            <div>
+                <ul class="common-navlist">
+                    <li class="common-navitem common-white common-navitem-index">首页</li>
+                    <li class="common-navitem common-white">资讯</li>
+                    <li class="common-navitem common-white common-active  common-navitem-pj" >配件商</li>
+                    <li class="common-navitem common-floatright common-white">个人中心</li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <div class="common-bodyer common-bg-lightgray">
+        <div>
+            <!--登录-->
+            <div class="login-box common-bg-white hidden">
+                <div class="login-title common-darkgray">登录</div>
+                <div class="login-tips common-darkgray">请输入店铺账号</div>
+                <div class="login-inputbar">
+                    <div class="login-label common-darkgray">账号</div>
+                    <input type="text" class="login-input" id="login-account"/>
+                </div>
+                <div class="login-inputbar">
+                    <div class="login-label common-darkgray">密码</div>
+                    <input type="password" class="login-input" id="login-pwd"/>
+                </div>
+                <div class="login-button common-white common-bg-orange">登 录</div>
+                <div class="login-tap">
+                    <img src="../images/common/login-tap.png" alt="">
+                    <div class="login-taptext common-white">店铺端</div>
+                </div>
+            </div>
+            <!--查询页面-->
+            <div class="index-box clearfix">
+                <div class="index-wechat common-bg-white">
+                    <!-- <iframe src="../chat/index.html" frameborder="0" style="height: 100%; width: 100%;"></iframe> -->
+                     <iframe src="../chat/index.html" frameborder="0" style="height: 100%; width: 100%;" name="iframeName" id="iframeName"></iframe>
+                    <div id="cookieIframe" class="hidden"></div>
+                    </div><!--
+                --><div class="index-rightbox">
+<!--                     <div class="index-qrbox common-bg-white">
+                        <div class="index-qrLabel  common-darkgray">配件查询</div>
+                        <input type="text" class="index-iteminput" placeholder="车型名称+配件名称">
+
+                        <div class="index-qrLabel  common-darkgray">车辆类型</div>
+                        <input type="text" class="index-brandinput" placeholder="请输入车型型号">
+
+                        <div class="index-brandbtn common-bg-orange common-white" >品牌查询<img src="../images/store/search.png" alt=""></div>
+                        <div class="index-qrLabel  common-darkgray">VIN 码</div>
+                        <input type="text" class="index-vininput" placeholder="请输入17位vin码">
+
+                        <div class="index-uploadbtn  common-darkgray">点击上传<img src="../images/store/photos.png" alt=""></div>
+                        <div class="index-qrbtn common-bg-orange common-white">立即查询</div>
+                    </div> -->
+                    <div class="index-qrbox common-bg-white">
+                        <div class=" clearfix wid100">
+                            <div class="index-qrLabel  common-darkgray">配件查询</div>
+                             <div class="index-iteminput-BOX">
+                                 <input type="text" class="index-iteminput" placeholder="车型名称+配件名称">
+                                 <span class="delete">x</span>
+                                 <div class="imgdiv index-qrbtn">
+                                    <img src="../images/index/search.png" alt="">
+                                 </div>
+                             </div>
+                        </div>
+
+                        <div class="clearfix wid100">
+                            <div class="index-qrLabel  common-darkgray">车辆型号</div>
+                            <div class="index-brandinput-BOX ">
+                                <input type="text" class="index-brandinput" placeholder="请输入车辆型号">
+                                 <span class="delete">x</span>
+
+                                 <div class="imgdiv index-qrbtn2" >
+                                    <img src="../images/index/search.png" alt="">
+                                 </div>
+                            </div>
+                            <div class="index-brandbtn common-bg-orange common-white orgfloat" >品牌查询<img src="../images/index/search.png" alt=""></div>
+                        </div>
+                        <div class="clearfix wid100">
+                            <div class="index-qrLabel  common-darkgray">VIN 码</div>
+                            <div class="index-vininput-box">
+                                <input type="text" class="index-vininput" placeholder="请输入17位vin码">
+                                 <span class="delete">x</span>
+                                
+                                <div class="imgdiv index-qrbtn3">
+                                    <img src="../images/index/search.png" alt="">
+                                </div>
+                            </div>
+                            <div class="index-uploadbtn  common-darkgray orgfloat">点击上传<img src="../images/index/photos.png" alt=""></div>
+                        </div>
+                        
+                        <!-- <div class="index-qrbtn common-bg-orange common-white">立即查询</div> -->
+                    </div>
+                    <div class="index-resultbox">
+                        <!--<div class="clearfix common-bg-white">
+                        <div class="index-resultbar">
+                            <span class="common-white">品牌车型</span><span class="common-white">年款</span><span class="common-white">排量</span><span class="common-white">发动机号</span><span class="common-white">备注</span>
+                        </div>
+                        <div class="index-resultext">
+                            <span class="">丰田威驰</span><span class="">2015</span><span class="">2.0</span><span class="">CUJ</span><span class="">备注备注备注备注备</span>
+                        </div>
+                        <div class="index-resulimgbar">
+                            <img src="../images/common/car.png" alt="">
+                            <img src="../images/common/car.png" alt="">
+                            <img src="../images/common/car.png" alt="">
+                        </div>
+                        <div class="index-resulbtnbar">
+                            <div class="common-white common-bg-lightgray">车牌号</div>
+                            <div class="common-white common-bg-orange">保存</div>
+                            <div class="common-white common-bg-lightgray">删除</div>
+                            <div class="common-white common-bg-orange">采购配件</div>
+                            <div class="common-white common-bg-orange">添加配件</div>
+                            <div class="common-white  common-bg-orange">查找配件</div>
+                        </div>
+                        <div class="index-resultitembar">
+                            <span class="common-white">名称</span><span class="common-white">规格</span><span class="common-white">产地</span><span class="common-white">售价</span><span class="common-white">建议价</span>
+                        </div>
+                        <div class="index-resultitemlist">
+                            <ul>
+                                <li>
+                                    <div class="index-resultext">
+                                    <span class="">保险杠</span><span class="">丰田</span><span class="">湖南</span><span class="">￥500</span><span class="">￥600</span>
+                                    </div>
+                                    <div class="index-resultitemdetail">
+                                        <img src="../images/common/car.png" alt="">
+                                        <div class="index-resultnumbar">
+                                            <span>数量（箱）</span><div class="index-resultnummin">-</div><input value="1"/><div class="index-resultnumadd common-orange">+</div><span class="index-check"></span><span>确定</span>
+                                        </div>
+                                        <div class="index-resultitemtime">2017-2-26 13:41:03</div>
+                                    </div>
+                                    
+                                </li>
+                                <li>
+                                    <div class="index-resultext">
+                                    <span class="">保险杠</span><span class="">丰田</span><span class="">湖南</span><span class="">￥500</span><span class="">￥600</span>
+                                    </div>
+                                    <div class="index-resultitemdetail">
+                                        <img src="../images/common/car.png" alt="">
+                                        <div class="index-resultnumbar">
+                                            <span>数量（箱）</span><div class="index-resultnummin">-</div><input value="1"/><div class="index-resultnumadd common-orange">+</div><span class="index-check"></span><span>确定</span>
+                                        </div>
+                                        <div class="index-resultitemtime">2017-2-26 13:41:03</div>
+                                    </div>
+                                    
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="index-resultitembtn">
+                            <div class="common-bg-lightgray">清除配件</div>
+                            <div class="common-bg-orange common-white">确定配件</div>
+                        </div>
+                        </div>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="common-footer">
+        <div>Copyright© 南星车管宝 2015-2016，All Rights Reserved</div>
+    </footer>
+    <script type="text/html" id='index-resultitemlistTemp'>
+    <% var stores = data.searchItemViews;
+        for(var j = 0; j < stores.length; j++){ 
+            var list = stores[j].supplierStockViews;
+            %>
+        <div class="clearfix common-bg-white index-resultboxitem">
+        <div class="index-resultbar">
+            <span class="common-white">品牌车型</span><span class="common-white">年款</span><span class="common-white">排量</span><span class="common-white">发动机号</span><span class="common-white">备注</span>
+        </div>
+        <div class="index-resultext">
+            <span class=""><%=stores[j].brand%><%=stores[j].catDesc%></span><span class=""><%=stores[j].modelYear%></span><span class=""><%=stores[j].output%></span><span class=""><%=stores[j].engineNo%></span><span class=""><%=stores[j].remarks%></span>
+        </div>
+        <div class="index-resulimgbar">
+            <% var imgs = stores[j].imageUrl ? stores[j].imageUrl.split(",") : [];
+                    for(var k = 0; k < imgs.length; k++){ %>
+            <!-- <img src="<%=Config().getImgUrl2+imgs[k]%>" alt=""> -->
+            <img src="<%=imgs[k].indexOf('_dkm_')>-1?Config().getImgUrl+imgs[k]:Config().getImgUrl2+imgs[k]%>">
+
+            <%}%>
+        </div>
+        <div class="index-resulbtnbar">
+            <div class="common-white common-bg-lightgray"><input class="common-bg-lightgray" placeholder="车牌号" value="<%=stores[j].license%>"></div>
+            <div class="common-white common-bg-orange index-resulbtnsave" data-id="<%=stores[j].id%>">保存</div>
+            <div class="common-white common-bg-lightgray index-resulbtndel" data-id="<%=stores[j].id%>">删除</div>
+            <!-- <div class="common-white common-bg-orange index-resulbtnbuy">采购配件</div> -->
+            <div class="common-white  common-bg-orange index-resulbtnqr" data-catid="<%=stores[j].catId%>" data-index="<%=j%>">查找配件</div>
+            <div class="common-white common-bg-orange index-resulbtnadd" data-searchid="<%=stores[j].searchId%>" data-id="<%=stores[j].id%>" data-index="<%=j%>">添加配件</div>
+            
+        </div>
+        <div class="index-resultitembar">
+            <span class="common-white">名称</span><span class="common-white">规格</span><span class="common-white">产地</span><span class="common-white">售价</span><span class="common-white">建议价</span>
+        </div>
+        <div class="index-resultitemlist">
+            <ul>
+                <%for(var i = 0; i < list.length; i++){ %>
+                <li class="index-resultitemlistline">
+                    <div class="index-resultext">
+                    <span class=""><%=list[i].stockViews[0].itemDesc%></span><span class=""><%=list[i].stockViews[0].spec%></span><span class=""><%=list[i].stockViews[0].prod%></span><span class="">￥<%=list[i].stockViews[0].proPrice%></span><span class="">￥<%=list[i].stockViews[0].opnAmt%></span>
+                    </div>
+                    <div class="index-resultitemdetail">
+                        <img src="<%=Config().getImgUrl2+list[i].imageUrl%>" alt="">
+                        <div class="index-resultnumbar">
+                            <span>数量（箱）</span><div class="index-resultnummin">-</div><input value="<%=list[i].amount%>"  class="index-resultnuminput" data-itemid="<%=list[i].searchItemId%>"/><div class="index-resultnumadd common-orange">+</div><span class="common-uncheck index-itemnumcheckicon"></span><input type="checkbox" class="index-check hidden"  data-itemid="<%=list[i].searchItemId%>"/><span>确定</span>
+                        </div>
+                        <!--<div class="index-resultitemtime"><%=formatDate(list[i].createTime)%></div>-->
+                    </div>
+                <div style="padding: 10px 0;">配件商：<%=list[i].storeName%>    <span style="margin-left: 20px;">联系电话：<%=list[i].contact%> </span></div>
+                </li>
+                <%}%>
+            </ul>
+        </div>
+        <div class="index-resultitembtn">
+            <div class="common-bg-lightgray  index-delItem">清除配件</div>
+            <div class="common-bg-orange common-white index-addItem">确定配件</div>
+        </div>
+
+        </div>
+        
+    <%}%>
+    </script>
+</body>
+<script type="text/javascript" src="../js/common/jquery.min.js"></script>
+
+<script type="text/javascript" src="../js/common/jquery.cookie.js"></script>
+<script src="../chat/demo/javascript/dist/webim.config.js"></script>
+
+<script type="text/javascript" src="../js/common/underscore-min.js"></script>
+<script>
+        <!--A JavaScript library for XMPP over Websocket-->
+        document.write("<script src='../chat/sdk/dist/strophe-1.2.8.min.js'><\/script>");
+</script>
+<!--sdk-->
+<script src='../chat/sdk/dist/websdk-1.4.8.js'></script>
+<!--webrtc-->
+<script>
+    if (WebIM.config.isWebRTC) {
+        document.write("<script src='../chat/webrtc/dist/adapter.js'><\/script>");
+        document.write("<script src='../chat/webrtc/dist/webrtc-1.4.8.js'><\/script>");
+    }
+</script>
+
+<script type="text/javascript" src="../js/common/common.js"></script>
+<script type="text/javascript" src="../js/store/index.js"></script>
+
+
+</html>

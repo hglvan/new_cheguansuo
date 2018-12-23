@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
+    <title>南星车管宝-个人中心</title>
+    <link href="../css/common/jcDate.css" rel="stylesheet" />
+    <link href="../css/common/common.css" rel="stylesheet" />
+    <link href="../css/account/orders.css" rel="stylesheet" />
+</head>
+
+<body class="common-bg-lightyellow">
+    <header>
+        <div class="common-loginbar common-bg-lightgray">
+            <div>
+                <div class="common-loginbtn common-darkgray">登录</div>
+            </div>
+        </div>
+        <div class="common-logobar common-bg-white">
+            <div>
+                <img class="common-logo" src="../images/common/logo-top.png" />
+            </div>
+        </div>
+        <div class="common-navbar common-bg-orange">
+            <div>
+                <ul class="common-navlist">
+                    <li class="common-navitem common-white common-navitem-index">首页</li>
+                    <li class="common-navitem common-white">资讯</li>
+                    <li class="common-navitem common-white common-navitem-pj" >配件商</li>
+                    <li class="common-navitem common-floatright common-white common-active">个人中心</li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <div class="common-bodyer common-bg-lightgray">
+        <div>
+            <!--个人信息-查询-->
+            <div class="account-box clearfix common-bg-white">
+                <div class="account-tabbar">
+                    <ul>
+                        <li class="account-active">我的订单</li>
+                        <li>财务处理</li>
+                        <li>退货处理</li>
+                        <li>退货状态</li>
+                    </ul>
+                </div>
+                <div class="account-qrbox">
+                    <div class="account-qrstore">
+                        <span>配件商</span>
+                        <input type="text" class="common-bg-lightgray account-qrstoreinput">
+                    </div>
+                    <div class="account-qrdate">
+                        <span>日期</span>
+                        <input type="text" class="common-bg-lightgray account-startdate">
+                        <span>至</span>
+                        <input type="text" class="common-bg-lightgray account-enddate">
+                    </div>
+                    <div class="account-qrcar">
+                        <span>车牌</span>
+                        <input type="text" class="common-bg-lightgray account-qrcarinput">
+                    </div>
+                    <div class="account-qrname">
+                        <span>名称</span>
+                        <input type="text" class="common-bg-lightgray account-qrnameinput">
+                    </div>
+                    <div class="account-btnbar">
+                        <div class="common-bg-orange common-white" id="statusQr">查询</div>
+                    </div>
+                </div>
+            </div>
+            <!--我的订单-->
+            <div class="orders-box clearfix">
+                <!--<div>
+                <div class="orders-resultbar">
+                    <span class="common-white">品牌车型</span><span class="common-white">年款</span><span class="common-white">排量</span><span
+                        class="common-white">发动机号</span><span class="common-white">备注</span>
+                </div>
+                <div class="orders-resultext">
+                    <span class="">丰田威驰</span><span class="">2015</span><span class="">2.0</span><span class="">CUJ</span><span
+                        class="">备注备注备注备注备</span>
+                </div>
+                <div class="orders-resulimgbar">
+                    <img src="../images/common/car.png" alt="">
+                    <img src="../images/common/car.png" alt="">
+                    <img src="../images/common/car.png" alt="">
+                </div>
+                <div class="orders-resulbtnbar">
+                    <div class="common-white common-bg-lightgray">车牌号</div>
+                    <div class="common-white common-bg-orange">保存</div>
+                    <div class="common-white common-bg-lightgray">删除</div>
+                    <div class="common-white common-bg-orange">采购配件</div>
+                    <div class="common-white common-bg-orange">添加配件</div>
+                    <div class="common-white  common-bg-orange">查找配件</div>
+                </div>
+                <div class="orders-resultitembar">
+                    <span class="common-white">名称</span><span class="common-white">规格</span><span class="common-white">产地</span><span
+                        class="common-white">售价</span><span class="common-white">建议价</span>
+                </div>
+                <div class="orders-resultitemlist">
+                    <ul>
+                        <li>
+                            <div class="orders-resultext">
+                                <span class="">保险杠</span><span class="">丰田</span><span class="">湖南</span><span class="">￥500</span><span
+                                    class="">￥600</span>
+                            </div>
+                            <div class="orders-resultitemdetail">
+                                <img src="../images/common/car.png" alt="">
+                                <div class="orders-resultnumbar">
+                                    <span>数量（箱）</span>
+                                    <div class="orders-resultnummin">-</div><input value="1" /><div class="orders-resultnumadd common-orange">+</div><span class="orders-check"></span><span>确定</span>
+                                </div>
+                                <div class="orders-resultitemtime">2017-2-26 13:41:03</div>
+                            </div>
+
+                        </li>
+                    </ul>
+                </div>
+                <div class="orders-resultitembtn">
+                    <div class="common-bg-lightgray">清除配件</div>
+                    <div class="common-bg-orange common-white">确定配件</div>
+                </div>
+                </div>-->
+            </div>
+        </div>
+    </div>
+    <footer class="common-footer">
+        <div>Copyright© 南星车管宝 2015-2016，All Rights Reserved</div>
+    </footer>
+    <script type="text/html" id='orders-resultitemlistTemp'>
+    <% var stores = data.searchItemViews;
+        for(var j = 0; j < stores.length; j++){ 
+            var list = stores[j].supplierStockViews;
+            if(list.length > 0){
+                list = list[0].stockViews
+            }
+            %>
+        <div class="clearfix common-bg-white orders-resultboxitem">
+                <div class="orders-resultbar">
+                    <span class="common-white">品牌车型</span><span class="common-white">年款</span><span class="common-white">排量</span><span
+                        class="common-white">发动机号</span><span class="common-white">备注</span>
+                </div>
+                <div class="orders-resultext">
+                    <span class=""><%=stores[j].brand%><%=stores[j].catDesc%></span><span class=""><%=stores[j].modelYear%></span><span class=""><%=stores[j].output%></span><span class=""><%=stores[j].engineNo%></span><span
+                        class=""><%=stores[j].remarks%></span>
+                </div>
+                <div class="clearfix">
+                    <div class="fl">
+                        <div class="orders-resulimgbar">
+                            <% var imgs = stores[j].imageUrl ? stores[j].imageUrl.split(",") : [];
+                            for(var k = 0; k < imgs.length; k++){ %>
+                            <img src="<%=Config().getImgUrl2+imgs[k]%>" alt="">
+                            <%}%>
+                        </div>
+                        <div class="deleteBox">
+                            <div class="common-white common-bg-lightgray orders-resulbtndel" data-id="<%=stores[j].searchId%>">删除</div>
+                        </div>
+                    </div>
+                    
+                    <div class="fr">
+                        <div class="orders-resulbtnbar">
+                            <div class="common-white common-bg-lightgray orders-resulbtnLicense"><input class="common-bg-lightgray" placeholder="车牌号" value="<%=stores[j].license%>"></div>
+                            <div class="common-white common-bg-orange orders-resulbtnsave" data-id="<%=stores[j].id%>">保存</div>
+                            
+                            <!-- <div class="common-white common-bg-orange orders-resulbtnbuy">采购配件</div> -->
+                            <div class="common-white  common-bg-orange orders-resulbtnqr"  data-index="<%=j%>" data-catid="<%=stores[j].catId%>">查找配件</div>
+                            <div class="common-white common-bg-orange orders-resulbtnadd" data-searchid="<%=stores[j].searchId%>" data-id="<%=stores[j].id%>"  data-index="<%=j%>">添加配件</div>
+                    
+                        </div>
+                    </div>
+                </div>
+                <%if(stores[j].supplierStockViews.length > 0){
+                %>
+                <div class="orders-resultitembar">
+                    <span class="common-white">名称</span><span class="common-white">规格</span><span class="common-white">产地</span><span
+                        class="common-white">售价</span><span class="common-white">建议价</span>
+                </div>
+                <%}%>
+                <div class="orders-resultitemlist">
+                    <ul>
+                        <%for(var i = 0; i < list.length; i++){ %>
+                        <li>
+                            <div class="orders-resultext">
+                                <span class=""><%=list[i].itemDesc%></span><span class=""><%=list[i].spec%></span><span class=""><%=list[i].prod%></span><span class="">￥<%=list[i].proPrice%></span><span
+                                    class="">￥<%=list[i].opnAmt%></span>
+                            </div>
+                            <div class="orders-resultitemdetail">
+                                <img src="<%=Config().getImgUrl2+list[i].imageUrl%>" alt="">
+                                <div class="orders-resultnumbar">
+                                    <span>数量（箱）</span>
+                                    <div class="orders-resultnummin">-</div><input value="<%=list[i].amount%>" class="orders-resultnuminput" data-itemid="<%=list[i].searchItemId%>" /><div class="orders-resultnumadd common-orange">+</div><span class="common-uncheck orders-itemnumcheckicon"></span><input type="checkbox" class="orders-itemnumcheck hidden" data-itemid="<%=list[i].searchItemId%>"/><span>确定</span>
+                                </div>
+                                <div class="orders-resultitemtime"><%=formatDate(list[i].createTime)%></div>
+                            </div>
+
+                        </li>
+                        <%}%>
+                    </ul>
+                </div>
+                <%if(stores[j].supplierStockViews.length > 0){
+                %>
+                <div class="orders-resultstore">
+                    <div><%=stores[j].supplierStockViews[0].storeName%></div>
+                    <div><%=formatDate(stores[j].supplierStockViews[0].createTimeStart, 1)%>至<%=formatDate(stores[j].supplierStockViews[0].createTimeEnd, 1)%></div>
+                </div> 
+                <div class="orders-resultitembtn">
+                    <div class="common-bg-lightgray orders-delItem">清除配件</div>
+                    <div class="common-bg-orange common-white orders-addItem">确定配件</div>
+                </div>
+                <%}%>
+                </div>
+                <%}%>
+    </script>
+</body>
+<script type="text/javascript" src="../js/common/jquery.min.js"></script>
+<script type="text/javascript" src="../js/common/underscore-min.js"></script>
+<script type="text/javascript" src="../js/common/jQuery-jcDate.js"></script>
+
+<script type="text/javascript" src="../js/common/common.js"></script>
+<script type="text/javascript" src="../js/account/orders.js"></script>
+
+</html>
