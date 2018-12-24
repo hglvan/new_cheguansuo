@@ -179,13 +179,13 @@ body {
 .common-bodyer {
     min-height: 700px;
     width: 100%;
-    /* min-width: 1000px; */
-    min-width: 1250px;
+    min-width: 1000px;
+    /* min-width: 1250px; */
 }
 
 .common-bodyer>div {
-    width: 1250px;
-    /* width: 1000px; */
+    /* width: 1250px; */
+    width: 1000px;
     margin: 0 auto;
     padding-top: 1px;
 }
