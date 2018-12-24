@@ -40,7 +40,7 @@ function getList(page) {
     data: {
       catId: getParameter("fdrId") ? undefined : window.localStorage.getItem("catId"),
       fdrId: getParameter("fdrId") || undefined,
-      itemDesc: window.localStorage.getItem("itemDesc"),
+        itemDesc: getParameter("accessoryName") ? getParameter("accessoryName") : window.localStorage.getItem("itemDesc"),
       page: page,
       pageSize: 10,
       noCookByUserId: window.sessionStorage.getItem("id")
