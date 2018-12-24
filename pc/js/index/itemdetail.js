@@ -15,7 +15,10 @@ var itemData;
     })
 })()
 
-
+//返回上一页
+$('.icon-fanhui').click(function(){
+    window.history.go(-1);
+})
 //获取分类列表
 function getList(){
     // var url = Config().itemDetail.replace("{itemCode}", getParameter("cid"));

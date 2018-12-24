@@ -1,42 +1,51 @@
 <!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
     <title>南星车管宝-配件详情</title>
     <link href="../css/common/swiper.min.css" rel="stylesheet" />
     <link href="../css/common/common.css" rel="stylesheet" />
     <link href="../css/index/itemdetail.css" rel="stylesheet" />
-</head>
+    <link href="../css/icon/iconfont.css" rel="stylesheet" />
+  </head>
 
-<body class="common-bg-lightyellow">
+  <body class="common-bg-lightyellow">
     <header>
-        <div class="common-loginbar common-bg-lightgray">
-            <div>
-                <div class="common-loginbtn common-darkgray">登录</div>
-            </div>
+      <div class="common-loginbar common-bg-lightgray">
+        <div><div class="common-loginbtn common-darkgray">登录</div></div>
+      </div>
+      <div class="common-logobar common-bg-white">
+        <div>
+          <img class="common-logo" src="../images/common/logo-top.png" />
         </div>
-        <div class="common-logobar common-bg-white">
-            <div>
-                <img class="common-logo" src="../images/common/logo-top.png" />
-            </div>
+      </div>
+      <div class="common-navbar common-bg-orange">
+        <div>
+          <ul class="common-navlist">
+            <li class="common-fanhui">
+              <i class="iconfont icon-fanhui" style="color:#fff"></i>
+            </li>
+            <li
+              class="common-navitem common-white common-active common-navitem-index"
+            >
+              首页
+            </li>
+            <li class="common-navitem common-white">资讯</li>
+            <li class="common-navitem common-white common-navitem-pj">
+              配件商
+            </li>
+            <li class="common-navitem common-floatright common-white">
+              个人中心
+            </li>
+          </ul>
         </div>
-        <div class="common-navbar common-bg-orange">
-            <div>
-                <ul class="common-navlist">
-                    <li class="common-navitem common-white common-active common-navitem-index">首页</li>
-                    <li class="common-navitem common-white">资讯</li>
-                    <li class="common-navitem common-white common-navitem-pj" >配件商</li>
-                    <li class="common-navitem common-floatright common-white">个人中心</li>
-                </ul>
-            </div>
-        </div>
+      </div>
     </header>
     <div class="common-bodyer common-bg-lightgray">
-        <div>
-            <!--查询页面-->
-            <div class="itemdetail-box clearfix common-bg-white">
-                <!--<div class="itemdetail-position">首页>配件名称</div>
+      <div>
+        <!--查询页面-->
+        <div class="itemdetail-box clearfix common-bg-white">
+          <!--<div class="itemdetail-position">首页>配件名称</div>
                 <div class="itemdetail-detail">
                         <img src="../images/common/car.png" alt="">
                         <div class="itemdetail-detailbox">
@@ -50,45 +59,45 @@
                             <div class="itemdetail-btn common-bg-orange common-white">添加</div>
                             </div>
                 </div>-->
-            </div>
         </div>
+      </div>
     </div>
     <footer class="common-footer">
-        <div>Copyright© 南星车管宝 2015-2016，All Rights Reserved</div>
+      <div>Copyright© 南星车管宝 2015-2016，All Rights Reserved</div>
     </footer>
-    <script type="text/html" id='itemdetail-resultitemlistTemp'>
-        <div class="itemdetail-position">首页><%=data.itemDesc%></div>
-        <div class="itemdetail-detail">
-            <div class="swiper-container">
-                <% 
-                var imgs = data.imgpath.split(",");
-                %>
-                <div class="swiper-wrapper">
-                    <%for(var i = 0; i < imgs.length; i ++){%>
-                    <div class="swiper-slide"><img src="<%=Config().getImgUrl2+imgs[i]%>" alt=""></div>
-                    <%}%>
-                </div>
-                <!-- 如果需要分页器 -->
-                <div class="swiper-pagination"></div>             
-            </div>
-            <div class="itemdetail-detailbox">
-                <div class="itemdetail-detailtitle"><%=data.itemDesc%></div>
-                <div><span class="common-darkgray">名称：</span><span><%=data.itemDesc%></span></div>
-                <div><span class="common-darkgray">车型：</span><span><%=data.catDesc%></span></div>
-                <div><span class="common-darkgray">规格：</span><span><%=data.spec%></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="common-darkgray">产地：</span><span><%=data.prod%></span></div>
-                <div><span class="common-darkgray">品牌：</span><span><%=data.brand%></span></div>
-                <div><span class="common-darkgray">价格：</span><span class="common-red">￥<%=data.imtPrice%></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="common-darkgray">建议零售价：</span><span>￥<%=data.retPrice%></span></div>
-                <div><span class="common-darkgray">备注：</span><span><%=data.remark%></span></div>
-                <div class="itemdetail-btn itemdetail-orderbtn common-bg-darkgray common-white" data-cid="<%=data.itemCode%>">定急件</div>
-                <div class="itemdetail-btn itemdetail-addbtn common-bg-orange common-white" data-cid="<%=data.itemCode%>">添加</div>
-                </div>
-        </div>
+    <script type="text/html" id="itemdetail-resultitemlistTemp">
+      <div class="itemdetail-position">首页><%=data.itemDesc%></div>
+      <div class="itemdetail-detail">
+          <div class="swiper-container">
+              <%
+              var imgs = data.imgpath.split(",");
+              %>
+              <div class="swiper-wrapper">
+                  <%for(var i = 0; i < imgs.length; i ++){%>
+                  <div class="swiper-slide"><img src="<%=Config().getImgUrl2+imgs[i]%>" alt=""></div>
+                  <%}%>
+              </div>
+              <!-- 如果需要分页器 -->
+              <div class="swiper-pagination"></div>
+          </div>
+          <div class="itemdetail-detailbox">
+              <div class="itemdetail-detailtitle"><%=data.itemDesc%></div>
+              <div><span class="common-darkgray">名称：</span><span><%=data.itemDesc%></span></div>
+              <div><span class="common-darkgray">车型：</span><span><%=data.catDesc%></span></div>
+              <div><span class="common-darkgray">规格：</span><span><%=data.spec%></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="common-darkgray">产地：</span><span><%=data.prod%></span></div>
+              <div><span class="common-darkgray">品牌：</span><span><%=data.brand%></span></div>
+              <div><span class="common-darkgray">价格：</span><span class="common-red">￥<%=data.imtPrice%></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="common-darkgray">建议零售价：</span><span>￥<%=data.retPrice%></span></div>
+              <div><span class="common-darkgray">备注：</span><span><%=data.remark%></span></div>
+              <div class="itemdetail-btn itemdetail-orderbtn common-bg-darkgray common-white" data-cid="<%=data.itemCode%>">定急件</div>
+              <div class="itemdetail-btn itemdetail-addbtn common-bg-orange common-white" data-cid="<%=data.itemCode%>">添加</div>
+              </div>
+      </div>
     </script>
-</body>
-<script type="text/javascript" src="../js/common/jquery.min.js"></script>
-<script type="text/javascript" src="../js/common/underscore-min.js"></script>
-<script type="text/javascript" src="../js/common/swiper.min.js"></script>
+  </body>
+  <script type="text/javascript" src="../js/common/jquery.min.js"></script>
+  <script type="text/javascript" src="../js/common/underscore-min.js"></script>
+  <script type="text/javascript" src="../js/common/swiper.min.js"></script>
 
-<script type="text/javascript" src="../js/common/common.js"></script>
-<script type="text/javascript" src="../js/index/itemdetail.js"></script>
+  <script type="text/javascript" src="../js/common/common.js"></script>
+  <script type="text/javascript" src="../js/index/itemdetail.js"></script>
 </html>

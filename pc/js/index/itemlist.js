@@ -32,7 +32,10 @@
     }
   });
 })();
-
+//返回上一页
+$('.icon-fanhui').click(function(){
+    window.history.go(-1);
+})
 //获取分类列表
 function getList(page) {
   $.ajax({
