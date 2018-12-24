@@ -192,8 +192,7 @@
 	    delivery: WebIM.config.delivery,
 	    saveLocal: WebIM.config.saveLocal
 	});
-	console.log('相关的吧')
-	// init()
+	init()
     function clearCookie(){
     var keys=document.cookie.match(/[^ =;]+(?=\=)/g); 
     if (keys) { 
@@ -219,8 +218,7 @@
 				var objc = obj.split('=')
 				if (objc[0].indexOf('webim_')>-1) {
 					var username= objc[0].substring(6)
-					// window.location.href=window.location.href+'#username='+username+'&curNode='+window.sessionStorage.getItem("id")
-					// alert(	window.location.href)
+					window.location.href=`${window.location.href}#username=${	window.sessionStorage.getItem("userName")}&curNode=${window.sessionStorage.getItem("id")}`
 					return false
 				}
 			})

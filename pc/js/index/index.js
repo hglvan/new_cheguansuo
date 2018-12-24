@@ -213,11 +213,11 @@ function login(acount, passWord){
         dataType: "JSON",
         success: function(data){            
             if(data.statusCode == 200){
-                console.log('ata',data)
+                console.log('data登录',data)
                 saveObject("userInfo", data);
                 window.sessionStorage.setItem("isLogin", 1);
                 window.sessionStorage.setItem("sid", data.sid);
-                window.sessionStorage.setItem("id", data.userView.id);
+                window.sessionStorage.setItem("id", data.userView.id.trim());
                 window.sessionStorage.setItem("acount", acount);
                 getIndexList();
                 $(".login-box").addClass("hidden");
@@ -245,8 +245,7 @@ function login(acount, passWord){
     });
 }
 function chatLogin(acount, passWord){
-    login(acount, passWord)
-    return
+ 
     var conn = new WebIM.connection({
 	    isMultiLoginSessions: WebIM.config.isMultiLoginSessions,
 	    https: typeof WebIM.config.https === 'boolean' ? WebIM.config.https : location.protocol === 'https:',
@@ -262,32 +261,27 @@ function chatLogin(acount, passWord){
 	    delivery: WebIM.config.delivery,
 	    saveLocal: WebIM.config.saveLocal
     });
-    var options = {
+    var options = { 
         apiUrl: WebIM.config.apiURL,
         user: acount,
         pwd: passWord,
-        // accessToken: passWord,
         appKey: WebIM.config.appkey,
         success: function success(token) {
-                        console.log(token)
             var encryptUsername = btoa(acount);
             encryptUsername = encryptUsername.replace(/=*$/g, "");
-            // var token = token.access_token;
-            var url = '#username=' + encryptUsername;
-            // console.log('你好',url,encryptUsername)
+            var token = token.access_token;
+            $('#cookieIframe').html('webim_' + encryptUsername+'='+token)
+            window.sessionStorage.setItem('userName', encryptUsername);
             WebIM.utils.setCookie('webim_' + encryptUsername, token, 1);
-            WebIM.utils.setCookie('5555' + encryptUsername, token, 1);
             login(acount, passWord)
-            // window.location.href = url;
-            // Demo.token = token;
-        },
-        error: function error() {
-            alert('报错')
-            window.location.href = '#';
-        }
-    };
-    console.log('阿斯顿发送到',options)
-    conn.open(options);
+      },
+      error: function error() {
+          // window.history.pushState({}, 0, 'chat');
+          alert('账号密码错误！')
+      }
+        
+      };
+      conn.open(options);
 }
 
 //获取首页资讯
