@@ -87,7 +87,7 @@
                                 <li>
                                     <div class="itemlist-resultext">
                                         
-                                        <span class="itemlistImageUrl">
+                                        <span data-itemcode="<%=list[i].itemCode%>" class="itemlistImageUrl" style="border:1px solid #ccc">
                                             <a href="./itemdetail.html?itemCode=<%=list[i].itemCode%>"> <img class='good_img'  src="<%=(list[i].imageUrl!=null)?Config().getImgUrl2+list[i].imageUrl:Config().getImgUrl2+list[i].imgpath %>" alt=""></a>
                                        </span><span class=""><%=list[i].itemDesc%></span><span class=""><%=list[i].catDesc%></span><span class=""><%=list[i].spec%></span><span
                                             class=""><%=list[i].prod%></span><span class=""><%=list[i].brand%></span><span class="">￥<%=list[i].imtPrice%></span><span class="">￥<%=list[i].retPrice%></span>

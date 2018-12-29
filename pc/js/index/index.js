@@ -122,9 +122,10 @@ var carData;
         var target = e.currentTarget;
         var index = target.dataset.index;
         window.localStorage.setItem("parentId", target.dataset.catid);
+        window.localStorage.setItem("searchid", target.dataset.searchid);
         saveObject("carInfo", carData[index]);
         console.log(carData[index])
-        location.href = "../index/itemqr.html?fdrid="+target.dataset.fdrid
+        location.href = "../index/itemqr.html?fdrid="+target.dataset.fdrid+'&searchid='+target.dataset.searchid
     })
 
     $(".index-resultbox").delegate(".index-delItem", "click", function (e) {

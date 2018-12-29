@@ -198,7 +198,7 @@
             
             <div class="common-white common-bg-lightgray index-resulbtndel" style='color:#000' data-id="<%=stores[j].searchId%>">删除配件</div>
             <!-- <div class="common-white common-bg-orange index-resulbtnbuy">采购配件</div> -->
-            <div class="common-white  common-bg-orange index-resulbtnqr" data-catid="<%=stores[j].catId%>" data-fdrid="<%=stores[j].fdrId%>" data-index="<%=j%>">查找配件</div>
+            <div class="common-white  common-bg-orange index-resulbtnqr" data-catid="<%=stores[j].catId%>" data-fdrid="<%=stores[j].fdrId%>" data-searchid="<%=stores[j].id%>" data-index="<%=j%>">查找配件</div>
             <div class="common-white common-bg-orange index-resulbtnadd" data-searchid="<%=stores[j].searchId%>" data-id="<%=stores[j].id%>" data-index="<%=j%>">添加配件</div>
             
         </div>
@@ -210,13 +210,13 @@
                 <%for(var i = 0; i < list.length; i++){ %>
                 <li class="index-resultitemlistline">
                     <div class="index-resultext">
-                    <span class=""><%=list[i].itemDesc%></span><span class=""><%=list[i].spec%></span><span class=""><%=list[i].prod%></span><span class="">￥<%=list[i].proPrice%></span><span class="">￥<%=list[i].opnAmt%></span>
+                    <span class=""><%=list[i].itemDesc%></span><span class=""><%=list[i].spec%></span><span class=""><%=list[i].prod%></span><span class="">￥<%=list[i].imtPrice%></span><span class="">￥<%=list[i].retPrice%></span>
                     </div>
                     <div class="index-resultitemdetail">
                         <!-- <span class="111111111111111"><%= (list[i].imageUrl&&(list[i].imageUrl.indexOf('_dkm_')>-1)) %></span> -->
                         <img src="<%=(list[i].imageUrl&&(list[i].imageUrl.indexOf('_dkm_')>-1))?Config().getImgUrl+list[i].imageUrl:Config().getImgUrl2+list[i].imageUrl%>" alt="">
                         <div class="index-resultnumbar">
-                            <span>数量（箱）</span><div class="index-resultnummin">-</div><input value="<%=list[i].amount%>"  class="index-resultnuminput" data-itemid="<%=list[i].searchItemId%>"/><div class="index-resultnumadd common-orange">+</div><span class="common-uncheck index-itemnumcheckicon"></span><input type="checkbox" class="index-check hidden"  data-itemid="<%=list[i].searchItemId%>"/><span>确定</span>
+                            <span>数量<%=list[i].amount%>（箱）</span><div class="index-resultnummin">-</div><input value="<%=list[i].amount%>"  class="index-resultnuminput" data-itemid="<%=list[i].searchItemId%>"/><div class="index-resultnumadd common-orange">+</div><span class="common-uncheck index-itemnumcheckicon"></span><input type="checkbox" class="index-check hidden"  data-itemid="<%=list[i].searchItemId%>"/><span>确定</span>
                         </div>
                         <!--<div class="index-resultitemtime"><%=formatDate(list[i].createTime)%></div>-->
                     </div>

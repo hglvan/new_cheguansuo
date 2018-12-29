@@ -11,11 +11,43 @@
 
   $(".itemlist-box").delegate(".itemlist-resultitembtn", "click", function(e) {
     var taget = e.currentTarget;
-    location.href =
-      "../index/itemdetail.html?cid=" +
-      taget.dataset.cid +
-      "&whLoc=" +
-      taget.dataset.wh;
+
+    var addList = JSON.parse(window.localStorage.getItem("addList")).find(item=>item.itemCode == taget.dataset.itemcode)
+    console.log('获取',addList)
+    $.ajax({
+      url: Config().addCar,
+      data: {
+          spec: addList.spec,  //1
+          searchItemId: addList.searchItemId || window.localStorage.getItem("searchid"), //1
+          searchId: window.localStorage.getItem("searchid"),
+          price: addList.imtPrice, //1
+          // modelYearId: carData.modelYearId,
+          itemDesc: addList.itemDesc, //1
+          itemCode: addList.itemCode, //1
+          isSupplier: "N", //1
+          imageUrl: addList.imgpath, //1
+          noCookByUserId:window.sessionStorage.getItem("id")
+          // fdrId: carData.fdrId,
+          // brandId: carData.brandId,
+          // noCookByUserId:window.sessionStorage.getItem("id")
+          
+      },
+      type: "post",
+      dataType: "JSON",
+      success: function (data) {
+          if (data.statusCode == 200) {
+              alert("添加成功！")
+              // window.location.href = "../index/index.html"
+          }else{
+              alert("添加失败！")
+          }
+      }
+  });
+    // location.href =
+    //   "../index/itemdetail.html?cid=" +
+    //   taget.dataset.cid +
+    //   "&whLoc=" +
+    //   taget.dataset.wh;
   });
   $(".itemlist-box").delegate(".itemlist-resultitemorder", "click", function(
     e
@@ -36,6 +68,15 @@
 $('.icon-fanhui').click(function(){
     window.history.go(-1);
 })
+  $(function(){
+    $("body").on("click",".itemlistImageUrl",function(event){
+      var target = event.currentTarget;
+        console.log(target.dataset)
+      location.href = '../index/itemdetail.html?itemCode='+target.dataset.itemcode
+    })
+})
+
+
 //获取分类列表
 function getList(page) {
   $.ajax({
@@ -51,8 +92,9 @@ function getList(page) {
     type: "POST",
     dataType: "JSON",
     success: function(data) {
-      console.log(data);
+      console.log('data',data);
       if (data.statusCode == 200) {
+        window.localStorage.setItem("addList",JSON.stringify(data.stockViews))
         if (data.stockViews == null || data.stockViews == 0) {
           alert("没有相关结果！");
           // window.history.back();

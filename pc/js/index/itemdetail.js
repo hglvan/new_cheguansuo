@@ -83,7 +83,7 @@ function addItem(){
             console.log(data);
             if (data.statusCode == 200) {
                 alert("添加成功！")
-                window.location.href = "../index/index.html"
+                // window.location.href = "../index/index.html"
             }else{
                 alert("添加失败！")
             }
