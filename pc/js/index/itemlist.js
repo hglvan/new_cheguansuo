@@ -21,6 +21,7 @@
           searchItemId: addList.searchItemId || window.localStorage.getItem("searchid"), //1
           searchId: window.localStorage.getItem("searchid"),
           price: addList.imtPrice, //1
+          retPrice: addList.retPrice, //1
           // modelYearId: carData.modelYearId,
           itemDesc: addList.itemDesc, //1
           itemCode: addList.itemCode, //1
