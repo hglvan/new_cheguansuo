@@ -171,8 +171,8 @@ var carData;
             alert("请选择配件");
             return;
         }
-        console.log(ids)
-        addItem(ids, items);
+        console.log('ids',ids)
+        addItem(ids, items,0);
     });
 
     $(".common-bodyer").delegate(".index-resultnummin", "click", function (e) {
@@ -338,7 +338,7 @@ function delItem(ids, items){
     });
 }
 //确认配件
-function addItem(ids, items){
+function addItem(ids, items,num){
     var orderParams = {
                 "orderParams":[{
                     "id": ids[0].searchItemId,
@@ -349,7 +349,9 @@ function addItem(ids, items){
         url: Config().addItem,
         data: {
             "orderParams": JSON.stringify(orderParams),
-            noCookByUserId:window.sessionStorage.getItem("id")
+            noCookByUserId:window.sessionStorage.getItem("id"),
+            requestType:num
+
         },
         type: "POST",
         dataType: "JSON",
@@ -359,6 +361,7 @@ function addItem(ids, items){
                 for(var i = 0; i < items.length; i++){
                     $(items[i]).remove();
                 }
+                getIndexList(window.sessionStorage.getItem("id"));
                 alert("添加成功！")
             }
         }

@@ -183,6 +183,7 @@ function addItem(ids, items){
         data: {
             "orderParams": JSON.stringify(orderParams),
             noCookByUserId:window.sessionStorage.getItem("id"),
+            requestType:1
         },
         type: "POST",
         dataType: "JSON",
