@@ -187,7 +187,7 @@
                                 <img src="<%=Config().getImgUrl2+list[i].imageUrl%>" alt="">
                                 <div class="orders-resultnumbar">
                                     <span>数量<%=list[i].amount%>（<%=list[i].unit%>）</span>
-                                    <div class="orders-resultnummin">-</div><input value="<%=list[i].amount%>" class="orders-resultnuminput" data-itemid="<%=list[i].searchItemId%>" /><div class="orders-resultnumadd common-orange">+</div><span class="common-uncheck orders-itemnumcheckicon"></span><input type="checkbox" class="orders-itemnumcheck hidden" data-itemid="<%=list[i].searchItemId%>"/><span>确定</span>
+                                    <div class="orders-resultnummin">-</div><input value="<%=list[i].amount%>" class="orders-resultnuminput" data-itemid="<%=list[i].searchItemId%>" /><div class="orders-resultnumadd common-orange">+</div><span class="common-uncheck orders-itemnumcheckicon"></span><input type="checkbox" class="orders-itemnumcheck hidden" data-outid="<%=stores[j].id%>"  data-itemid="<%=list[i].searchItemId%>"/><span>确定</span>
                                 </div>
                                 <div class="orders-resultitemtime"><%=formatDate(list[i].createTime)%></div>
                             </div>

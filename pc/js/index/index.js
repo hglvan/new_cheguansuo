@@ -158,6 +158,7 @@ var carData;
         for(var i = 0; i < list.length; i++){
             var check = $(list[i]).find(".index-check")[0].checked;
             var id = $(list[i]).find(".index-check")[0].dataset.itemid;
+            var outId = $(list[i]).find(".index-check")[0].dataset.outid;
             var amount = $($(list[i]).find(".index-resultnuminput")[0]).val();
             if(check){
                 ids.push({
@@ -171,8 +172,8 @@ var carData;
             alert("请选择配件");
             return;
         }
-        console.log('ids',ids)
-        addItem(ids, items,0);
+        console.log('outId',outId)
+        addItem(ids, items,outId);
     });
 
     $(".common-bodyer").delegate(".index-resultnummin", "click", function (e) {
@@ -338,10 +339,11 @@ function delItem(ids, items){
     });
 }
 //确认配件
-function addItem(ids, items,num){
+function addItem(ids, items,outId){
+    console.log('参数',ids)
     var orderParams = {
                 "orderParams":[{
-                    "id": ids[0].searchItemId,
+                    "id": outId,
                     "orderItemParams": ids
                 }]
             };
@@ -350,7 +352,7 @@ function addItem(ids, items,num){
         data: {
             "orderParams": JSON.stringify(orderParams),
             noCookByUserId:window.sessionStorage.getItem("id"),
-            requestType:num
+            requestType:0
 
         },
         type: "POST",

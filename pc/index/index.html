@@ -216,7 +216,7 @@
                         <!-- <span class="111111111111111"><%= (list[i].imageUrl&&(list[i].imageUrl.indexOf('_dkm_')>-1)) %></span> -->
                         <img src="<%=(list[i].imageUrl&&(list[i].imageUrl.indexOf('_dkm_')>-1))?Config().getImgUrl+list[i].imageUrl:Config().getImgUrl2+list[i].imageUrl%>" alt="">
                         <div class="index-resultnumbar">
-                            <span>数量<%=list[i].amount%>（<%=list[i].unit%>）</span><div class="index-resultnummin">-</div><input value="<%=list[i].amount%>"  class="index-resultnuminput" data-itemid="<%=list[i].searchItemId%>"/><div class="index-resultnumadd common-orange">+</div><span class="common-uncheck index-itemnumcheckicon"></span><input type="checkbox" class="index-check hidden"  data-itemid="<%=list[i].searchItemId%>"/><span>确定</span>
+                            <span>数量<%=list[i].amount%>（<%=list[i].unit%>）</span><div class="index-resultnummin">-</div><input value="<%=list[i].amount%>"  class="index-resultnuminput" data-itemid="<%=list[i].searchItemId%>"/><div class="index-resultnumadd common-orange">+</div><span class="common-uncheck index-itemnumcheckicon"></span><input type="checkbox" class="index-check hidden" data-outid="<%=stores[j].id%>"  data-itemid="<%=list[i].searchItemId%>"/><span>确定</span>
                         </div>
                         <!--<div class="index-resultitemtime"><%=formatDate(list[i].createTime)%></div>-->
                     </div>
