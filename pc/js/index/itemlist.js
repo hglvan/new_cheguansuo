@@ -11,9 +11,11 @@
 
   $(".itemlist-box").delegate(".itemlist-resultitembtn", "click", function(e) {
     var taget = e.currentTarget;
-
+    JSON.parse(window.localStorage.getItem("addList")).forEach(element => {
+      console.log('sddsd',element.itemCode)
+    });
     var addList = JSON.parse(window.localStorage.getItem("addList")).find(item=>item.itemCode == taget.dataset.itemcode)
-    console.log('获取',addList)
+    console.log('获取',taget.dataset.itemcode,addList)
     $.ajax({
       url: Config().addCar,
       data: {
@@ -141,6 +143,7 @@ function getQr(page) {
       console.log(data);
       if (data.statusCode == 200) {
         data.stockViews = data.typeCatViews || [];
+        window.localStorage.setItem("addList",JSON.stringify(data.stockViews))
         if (data.stockViews == 0) {
           alert("没有相关结果！！");
           // window.history.back();
@@ -185,6 +188,7 @@ function getQr1(page) {
       console.log(data);
       if (data.statusCode == 200) {
         data.stockViews = data.stockViews || [];
+        window.localStorage.setItem("addList",JSON.stringify(data.stockViews))
         if (data.stockViews == 0) {
           alert("没有相关结果！！");
           // window.history.back();
