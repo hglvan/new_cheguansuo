@@ -30,6 +30,7 @@
           itemCode: addList.itemCode, //1
           isSupplier: "N", //1
           imageUrl: addList.imgpath, //1
+          addFromeIndex:1,
           noCookByUserId:window.sessionStorage.getItem("id")
           // fdrId: carData.fdrId,
           // brandId: carData.brandId,
@@ -144,6 +145,7 @@ function getQr(page) {
       if (data.statusCode == 200) {
         data.stockViews = data.typeCatViews || [];
         window.localStorage.setItem("addList",JSON.stringify(data.stockViews))
+        window.localStorage.setItem("typeCatView2",JSON.stringify(data.typeCatView2))
         if (data.stockViews == 0) {
           alert("没有相关结果！！");
           // window.history.back();

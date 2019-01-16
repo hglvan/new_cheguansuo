@@ -23,7 +23,7 @@ $('.icon-fanhui').click(function(){
 function getList(){
     // var url = Config().itemDetail.replace("{itemCode}", getParameter("cid"));
     var url = Config().itemDetail.replace("{itemCode}", getParameter("itemCode"));
-
+    console.log('看下吧')
     $.ajax({
         url: url,
         
@@ -58,14 +58,16 @@ function getList(){
 //添加配件
 function addItem(){
     console.log('里面carData',carData)
+    // window.localStorage.getItem("typeCatView2",JSON.stringify(data.typeCatView2))
+    let typeCatView2 = JSON.parse(window.localStorage.getItem("typeCatView2"))
     $.ajax({
         url: Config().addCar,
         
         data: {
             stores: "",
             spec: itemData.spec,
-            searchItemId: carData.id,
-            searchId: carData.searchId,
+            searchItemId: typeCatView2.modelYearId,
+            // searchId: carData.searchId,
             retPrice: itemData.retPrice,
             prod: itemData.prod,
             price: itemData.price,
@@ -74,8 +76,9 @@ function addItem(){
             itemCode: itemData.itemCode,
             isSupplier: "N",
             imageUrl: itemData.imgpath,
-            fdrId: "",
-            brandId: "",
+            fdrId: typeCatView2.fdrId,
+            brandId: typeCatView2.brandId,
+            addFromeIndex:1,
             noCookByUserId:window.sessionStorage.getItem("id")
         },
         type: "POST",
