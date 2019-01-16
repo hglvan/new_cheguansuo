@@ -57,21 +57,21 @@ function getList(){
 
 //添加配件
 function addItem(){
-    console.log('里面carData',carData)
+   
     // window.localStorage.getItem("typeCatView2",JSON.stringify(data.typeCatView2))
     let typeCatView2 = JSON.parse(window.localStorage.getItem("typeCatView2"))
+     console.log('里面carData',typeCatView2)
     $.ajax({
         url: Config().addCar,
-        
         data: {
             stores: "",
             spec: itemData.spec,
-            searchItemId: typeCatView2.modelYearId,
+            searchItemId: typeCatView2.searchItemId,
             // searchId: carData.searchId,
             retPrice: itemData.retPrice,
             prod: itemData.prod,
             price: itemData.price,
-            modelYearId: "",
+            modelYearId:typeCatView2.modelYearId,
             itemDesc: itemData.itemDesc,
             itemCode: itemData.itemCode,
             isSupplier: "N",
