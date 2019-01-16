@@ -3,7 +3,7 @@ var itemData;
 (function () {
     getList();
     carData = loadObject("carInfo")
-    console.log(carData)
+    console.log('carData',carData)
     $(".itemdetail-box").delegate(".itemdetail-orderbtn", "click", function (e) {
         var taget = e.currentTarget;
         location.href = "../index/itemorder.html?cid="+taget.dataset.cid;
@@ -57,6 +57,7 @@ function getList(){
 
 //添加配件
 function addItem(){
+    console.log('里面carData',carData)
     $.ajax({
         url: Config().addCar,
         
