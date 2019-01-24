@@ -11,8 +11,8 @@ function statusQr(isDef) {
         url: Config().siteOrders,
         
         data: {
-            createTimeEnd: $(".account-startdate").val() + " 00:00",
-            createTimeStart: $(".account-enddate").val() + " 00:00",
+            createTimeStart: $(".account-startdate").val() + " 00:00",
+            createTimeEnd: $(".account-enddate").val() + " 00:00",
             itemDesc: $(".account-qrnameinput").val(),
             license: $(".account-qrcarinput").val(),
             page: 1,
