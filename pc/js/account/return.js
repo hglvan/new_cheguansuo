@@ -50,13 +50,13 @@ function statusQr(isDef) {
         url: Config().siteOrders,
         
         data: {
-            createTimeEnd: isDef ? "" : $(".account-startdate").val() + " 00:00",
-            createTimeStart: isDef ? "" : $(".account-enddate").val() + " 00:00",
-            itemDesc: isDef ? "" : $(".account-qrnameinput").val(),
-            license: isDef ? "" : $(".account-qrcarinput").val(),
+            createTimeStart: $(".account-startdate").val() + " 00:00",
+            createTimeEnd: $(".account-enddate").val() + " 00:00",
+            itemDesc: $(".account-qrnameinput").val(),
+            license: $(".account-qrcarinput").val(),
             page: 1,
             pageSize: 5000,
-            storeName: isDef ? "" : $(".account-qrstoreinput").val(),
+            storeName: $(".account-qrstoreinput").val(),
             type: 2,
             noCookByUserId:window.sessionStorage.getItem("id"),
         },
