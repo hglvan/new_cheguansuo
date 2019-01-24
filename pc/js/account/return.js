@@ -43,7 +43,7 @@ var returnDate;
     });
 
 })()
-
+var page = 1;
 //获取退货列表
 function statusQr(isDef) {
     $.ajax({
@@ -54,8 +54,8 @@ function statusQr(isDef) {
             createTimeEnd: $(".account-enddate").val() + " 00:00",
             itemDesc: $(".account-qrnameinput").val(),
             license: $(".account-qrcarinput").val(),
-            page: 1,
-            pageSize: 5000,
+            page: page,
+            pageSize: 20,
             storeName: $(".account-qrstoreinput").val(),
             type: 2,
             noCookByUserId:window.sessionStorage.getItem("id"),
@@ -66,6 +66,7 @@ function statusQr(isDef) {
             console.log(data);
             returnDate = data;
             if (data.statusCode == 200) {
+                page = data.page
                 var resultitemlistTemp = _.template($('#return-resultitemlistTemp').html());
                 $('.return-box').html(resultitemlistTemp({
                     "data": data

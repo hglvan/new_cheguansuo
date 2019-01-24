@@ -111,7 +111,7 @@ var carData;
     })
 
 })()
-
+var page = 1;
 function statusQr(isDef) {
     $.ajax({
         url: Config().listSupplierNoBuy,
@@ -121,8 +121,8 @@ function statusQr(isDef) {
             createTimeEnd:  $(".account-enddate").val() + " 00:00",
             itemDesc:  $(".account-qrnameinput").val(),
             license:  $(".account-qrcarinput").val(),
-            page: 1,
-            pageSize: 5000,
+            page: page,
+            pageSize: 20,
             storeName:  $(".account-qrstoreinput").val(),
             noCookByUserId:window.sessionStorage.getItem("id")
         },
@@ -131,6 +131,7 @@ function statusQr(isDef) {
         success: function (data) {
             console.log(data);
             if (data.statusCode == 200) {
+                page = data.page
                 if(data.searchItemViews.length == 0){
                     alert("查询结果为空！");                   
                 }
