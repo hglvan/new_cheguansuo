@@ -2,7 +2,7 @@ var carData;
 (function () {
     statusQr("def");
     $("#statusQr").on("click", function () {
-        statusQr();
+        statusQr('check');
         console.log("statusQr")
     })
 
@@ -114,6 +114,7 @@ var carData;
 var page = 1;
 var copyData= {}
 function statusQr(isDef) {
+    console.log('查询',isDef)
     $.ajax({
         url: Config().listSupplierNoBuy,
         
@@ -122,7 +123,7 @@ function statusQr(isDef) {
             createTimeEnd:  $(".account-enddate").val() + " 00:00",
             itemDesc:  $(".account-qrnameinput").val(),
             license:  $(".account-qrcarinput").val(),
-            page: page,
+            page: 1,
             pageSize: 20,
             storeName:  $(".account-qrstoreinput").val(),
             noCookByUserId:window.sessionStorage.getItem("id")
