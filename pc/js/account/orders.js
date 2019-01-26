@@ -112,6 +112,7 @@ var carData;
 
 })()
 var page = 1;
+var copyData= {}
 function statusQr(isDef) {
     $.ajax({
         url: Config().listSupplierNoBuy,
@@ -135,6 +136,7 @@ function statusQr(isDef) {
                 if(data.searchItemViews.length == 0){
                     alert("查询结果为空！");                   
                 }
+                copyData = data
                 var resultitemlistTemp = _.template($('#orders-resultitemlistTemp').html());
                 $('.orders-box').html(resultitemlistTemp({
                     "data": data
@@ -147,6 +149,50 @@ function statusQr(isDef) {
         }
     });
 }
+function statusQrss(isDef) {
+    $.ajax({
+        url: Config().listSupplierNoBuy,
+        data: {
+            createTimeStart:  $(".account-startdate").val() + " 00:00",
+            createTimeEnd:  $(".account-enddate").val() + " 00:00",
+            itemDesc:  $(".account-qrnameinput").val(),
+            license:  $(".account-qrcarinput").val(),
+            page: page,
+            pageSize: 20,
+            storeName:  $(".account-qrstoreinput").val(),
+            noCookByUserId:window.sessionStorage.getItem("id")
+        },
+        type: "POST",
+        dataType: "JSON",
+        success: function (data) {
+            console.log(data);
+            if (data.statusCode == 200) {
+                page = data.page
+                if(data.searchItemViews.length == 0){
+                   return                   
+                }
+                copyData.searchItemViews.push(...data.searchItemViews)
+                var resultitemlistTemp = _.template($('#orders-resultitemlistTemp').html());
+                $('.orders-box').html(resultitemlistTemp({
+                    "data": copyData
+                }));
+                carData = data.searchItemViews;
+                $(".orders-box").removeClass("hidden");
+            }else{
+                alert("查询失败！");
+            }
+        }
+    });
+}
+$(window).scroll(function(){
+    // scroll at bottom
+    console.log('aaa',$(window).scrollTop() + $(window).height() , $(document).height())
+    if (Math.abs($(window).scrollTop() + $(window).height()+3-$(document).height()>2)) {
+        console.log('对你好')
+        // load data
+        statusQrss(1)
+    }
+});
 //清除配件
 function delItem(ids, items){
     $.ajax({

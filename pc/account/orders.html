@@ -7,8 +7,22 @@
     <link href="../css/common/jcDate.css" rel="stylesheet" />
     <link href="../css/common/common.css" rel="stylesheet" />
     <link href="../css/account/orders.css" rel="stylesheet" />
+    <!-- <link href="../css/iconfont/iconfont.css" rel="stylesheet" /> -->
 </head>
-
+<!-- <script src="../images/common/iconfont.js"></script> -->
+<style>
+.icon {
+  width: 17px;
+  height: 17px;
+  display: inline-block;
+  vertical-align: middle;
+  animation: rotating 2s linear infinite;
+    }
+  .loading {
+    background: url(../images/common/loading.png) no-repeat;
+    background-size: contain;
+  }
+</style>
 <body class="common-bg-lightyellow">
     <header>
         <div class="common-loginbar common-bg-lightgray">
@@ -207,9 +221,10 @@
                     <div class="common-bg-orange common-white orders-addItem">确定配件</div>
                 </div>
                 <%}%>
-                </div>
+                <!-- </div><div style="text-align:center;font-size:25px"><i class='icon loading'></i></div> -->
                 <%}%>
     </script>
+    
 </body>
 <script type="text/javascript" src="../js/common/jquery.min.js"></script>
 <script type="text/javascript" src="../js/common/underscore-min.js"></script>
