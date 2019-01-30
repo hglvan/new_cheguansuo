@@ -124,7 +124,7 @@ function statusQr(isDef) {
             itemDesc:  $(".account-qrnameinput").val(),
             license:  $(".account-qrcarinput").val(),
             page: 1,
-            pageSize: 20,
+            pageSize: 5,
             storeName:  $(".account-qrstoreinput").val(),
             noCookByUserId:window.sessionStorage.getItem("id")
         },
@@ -150,7 +150,7 @@ function statusQr(isDef) {
         }
     });
 }
-function statusQrss(isDef) {
+function statusQrss() {
     $.ajax({
         url: Config().listSupplierNoBuy,
         data: {
@@ -158,8 +158,8 @@ function statusQrss(isDef) {
             createTimeEnd:  $(".account-enddate").val() + " 00:00",
             itemDesc:  $(".account-qrnameinput").val(),
             license:  $(".account-qrcarinput").val(),
-            page: page,
-            pageSize: 20,
+            page: 1,
+            pageSize: 5,
             storeName:  $(".account-qrstoreinput").val(),
             noCookByUserId:window.sessionStorage.getItem("id")
         },
@@ -191,7 +191,7 @@ $(window).scroll(function(){
     if (Math.abs($(window).scrollTop() + $(window).height()+3-$(document).height()>2)) {
         console.log('对你好')
         // load data
-        statusQrss(1)
+        statusQrss()
     }
 });
 //清除配件
