@@ -103,12 +103,12 @@ function statusQrss() {
                    return                   
                 }
                 copyData.suplierInfoViews.push(...data.suplierInfoViews)
-                var resultitemlistTemp = _.template($('#orders-resultitemlistTemp').html());
-                $('.orders-box').html(resultitemlistTemp({
+                var resultitemlistTemp = _.template($('#return-resultitemlistTemp').html());
+                $('.return-box').html(resultitemlistTemp({
                     "data": copyData
                 }));
                 carData = data.suplierInfoViews;
-                $(".orders-box").removeClass("hidden");
+                $(".return-box").removeClass("hidden");
             }else{
                 alert("查询失败！");
             }
