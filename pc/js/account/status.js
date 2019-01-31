@@ -6,6 +6,7 @@
 
 })()
 var page = 1;
+var copyData = {}
 function statusQr(isDef) {
     $.ajax({
         url: Config().siteOrders,
@@ -27,6 +28,7 @@ function statusQr(isDef) {
             console.log(data);
             if (data.statusCode == 200) {
                 page = data.page
+                copyData = data
                 var resultitemlistTemp = _.template($('#status-resultitemlistTemp').html());
                 $('.status-box').html(resultitemlistTemp({
                     "data": data

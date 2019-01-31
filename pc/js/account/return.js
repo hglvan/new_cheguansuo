@@ -44,6 +44,8 @@ var returnDate;
 
 })()
 var page = 1;
+var copyData = {}
+ 
 //获取退货列表
 function statusQr(isDef) {
     $.ajax({
@@ -67,6 +69,7 @@ function statusQr(isDef) {
             returnDate = data;
             if (data.statusCode == 200) {
                 page = data.page
+                copyData = data
                 var resultitemlistTemp = _.template($('#return-resultitemlistTemp').html());
                 $('.return-box').html(resultitemlistTemp({
                     "data": data

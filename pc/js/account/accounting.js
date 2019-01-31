@@ -6,6 +6,8 @@
 
 })()
 var page =1;
+var copyData= {}
+
 function statusQr(isDef) {
     $.ajax({
         url: Config().siteOrders,
@@ -27,6 +29,7 @@ function statusQr(isDef) {
             console.log('data看下',data);
             if (data.statusCode == 200) {
                 page = data.page
+                copyData = data
                 var resultitemlistTemp = _.template($('#accounting-resultitemlistTemp').html());
                 $('.accounting-box').html(resultitemlistTemp({
                     "data": data
