@@ -41,7 +41,7 @@ function statusQr(isDef) {
 }
 function statusQrss() {
     $.ajax({
-        url: Config().listSupplierNoBuy,
+        url: Config().siteOrders,
         data: {
             createTimeStart:  $(".account-startdate").val() + " 00:00",
             createTimeEnd:  $(".account-enddate").val() + " 00:00",
@@ -58,15 +58,15 @@ function statusQrss() {
             console.log(data);
             if (data.statusCode == 200) {
                 page = data.page
-                if(data.searchItemViews.length == 0){
+                if(data.suplierInfoViews.length == 0){
                    return                   
                 }
-                copyData.searchItemViews.push(...data.searchItemViews)
+                copyData.suplierInfoViews.push(...data.suplierInfoViews)
                 var resultitemlistTemp = _.template($('#orders-resultitemlistTemp').html());
                 $('.orders-box').html(resultitemlistTemp({
                     "data": copyData
                 }));
-                carData = data.searchItemViews;
+                carData = data.suplierInfoViews;
                 $(".orders-box").removeClass("hidden");
             }else{
                 alert("查询失败！");
