@@ -48,6 +48,7 @@ function statusQrss() {
             itemDesc:  $(".account-qrnameinput").val(),
             license:  $(".account-qrcarinput").val(),
             page: page,
+            type: 1,
             pageSize: 5,
             storeName:  $(".account-qrstoreinput").val(),
             noCookByUserId:window.sessionStorage.getItem("id")
