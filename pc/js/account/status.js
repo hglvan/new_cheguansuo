@@ -79,6 +79,6 @@ $(window).scroll(function(){
     // scroll at bottom
     if (Math.abs($(window).scrollTop() + $(window).height()+3-$(document).height()>2)) {
         // load data
-        statusQrss()
+        if(copyData.suplierInfoViews.length != 0)statusQrss()
     }
 });

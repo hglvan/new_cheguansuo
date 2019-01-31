@@ -191,7 +191,7 @@ $(window).scroll(function(){
     if (Math.abs($(window).scrollTop() + $(window).height()+3-$(document).height()>2)) {
         console.log('对你好')
         // load data
-        statusQrss()
+        if(copyData.searchItemViews.length != 0)statusQrss()
     }
 });
 //清除配件
